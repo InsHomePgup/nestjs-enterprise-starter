@@ -19,6 +19,7 @@ import { HealthModule } from './modules/health/health.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', `.env.${process.env.NODE_ENV ?? 'development'}`],
       load: configuration,
       validationSchema,
     }),
