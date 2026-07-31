@@ -3,9 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TerminusModule } from '@nestjs/terminus';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { HealthController } from '../src/health/health.controller';
-import { PrismaHealthIndicator } from '../src/health/indicators/prisma-health.indicator';
-import { RedisHealthIndicator } from '../src/health/indicators/redis-health.indicator';
+import { HealthController } from '../src/modules/health/health.controller';
+import { PrismaHealthIndicator } from '../src/modules/health/indicators/prisma-health.indicator';
+import { RedisHealthIndicator } from '../src/modules/health/indicators/redis-health.indicator';
 
 describe('HealthController (e2e)', () => {
   let app: INestApplication<App>;

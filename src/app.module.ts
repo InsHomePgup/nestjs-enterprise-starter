@@ -7,10 +7,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
-import { PrismaModule } from './prisma/prisma.module';
-import { RedisCacheModule } from './cache/cache.module';
-import { HealthModule } from './health/health.module';
-import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './infra/prisma/prisma.module';
+import { RedisCacheModule } from './infra/cache/cache.module';
+import { HealthModule } from './modules/health/health.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
