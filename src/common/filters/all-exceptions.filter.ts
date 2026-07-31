@@ -11,7 +11,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest<Request & { id?: string }>();
 
     const isHttpException = exception instanceof HttpException;
     const statusCode: number = isHttpException
@@ -25,6 +25,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message,
       error: isHttpException ? exception.name : 'InternalServerError',
       path: request.url,
+      requestId: request.id,
       timestamp: new Date().toISOString(),
     };
 
