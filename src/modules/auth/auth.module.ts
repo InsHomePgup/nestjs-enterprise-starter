@@ -16,9 +16,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         signOptions: {
           // JWT_EXPIRES_IN is a free-form env string (e.g. "1d"); @nestjs/jwt's
           // `expiresIn` type only accepts its narrower `ms`-style literal union.
-          expiresIn: config.getOrThrow<string>(
-            'jwt.expiresIn',
-          ) as unknown as number,
+          expiresIn: config.getOrThrow<string>('jwt.expiresIn') as unknown as number,
         },
       }),
     }),

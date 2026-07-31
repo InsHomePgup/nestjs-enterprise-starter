@@ -1,10 +1,4 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Logger } from 'nestjs-pino';
 
@@ -24,9 +18,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message = isHttpException
-      ? exception.getResponse()
-      : 'Internal server error';
+    const message = isHttpException ? exception.getResponse() : 'Internal server error';
 
     const errorBody = {
       statusCode,
@@ -38,10 +30,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const logMessage = `${request.method} ${request.url} -> ${statusCode}`;
     if (statusCode >= INTERNAL_SERVER_ERROR_STATUS) {
-      this.logger.error(
-        logMessage,
-        exception instanceof Error ? exception.stack : undefined,
-      );
+      this.logger.error(logMessage, exception instanceof Error ? exception.stack : undefined);
     } else {
       this.logger.warn(logMessage);
     }

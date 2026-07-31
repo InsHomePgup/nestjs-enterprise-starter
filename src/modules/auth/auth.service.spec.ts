@@ -107,9 +107,9 @@ describe('AuthService', () => {
     it('throws UnauthorizedException when the user does not exist', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.login({ email: 'missing@example.com', password: 'x' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login({ email: 'missing@example.com', password: 'x' })).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('throws UnauthorizedException when the password does not match', async () => {
@@ -121,9 +121,9 @@ describe('AuthService', () => {
       });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(
-        service.login({ email: 'a@example.com', password: 'wrong' }),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login({ email: 'a@example.com', password: 'wrong' })).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 });
