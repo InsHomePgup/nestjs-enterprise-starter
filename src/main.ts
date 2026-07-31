@@ -15,6 +15,9 @@ async function bootstrap() {
 
   app.use(helmet());
   app.enableCors({ origin: configService.get<string>('app.corsOrigin') });
+  app.setGlobalPrefix(configService.get<string>('app.apiPrefix') ?? 'api', {
+    exclude: ['health'],
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -25,14 +28,16 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new AllExceptionsFilter(app.get(Logger)));
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('API')
-    .setDescription('Enterprise NestJS starter API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document);
+  if (configService.get<boolean>('app.swaggerEnabled')) {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle(configService.get<string>('app.name') ?? 'API')
+      .setDescription(configService.get<string>('app.description') ?? '')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, document);
+  }
 
   app.enableShutdownHooks();
 

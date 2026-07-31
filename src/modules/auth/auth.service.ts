@@ -1,17 +1,17 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../infra/prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
-const SALT_ROUNDS = 10;
-
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -22,7 +22,8 @@ export class AuthService {
       throw new ConflictException('Email is already registered');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, SALT_ROUNDS);
+    const saltRounds = this.configService.get<number>('auth.bcryptSaltRounds') ?? 10;
+    const hashedPassword = await bcrypt.hash(dto.password, saltRounds);
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,

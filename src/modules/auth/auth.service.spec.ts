@@ -1,4 +1,5 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
@@ -16,6 +17,7 @@ describe('AuthService', () => {
     };
   };
   let jwtService: { sign: jest.Mock };
+  let configService: { get: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -25,12 +27,14 @@ describe('AuthService', () => {
       },
     };
     jwtService = { sign: jest.fn().mockReturnValue('signed-jwt') };
+    configService = { get: jest.fn().mockReturnValue(10) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: PrismaService, useValue: prisma },
         { provide: JwtService, useValue: jwtService },
+        { provide: ConfigService, useValue: configService },
       ],
     }).compile();
 

@@ -5,6 +5,10 @@ export const appConfig = registerAs('app', () => ({
   nodeEnv: process.env.NODE_ENV ?? 'development',
   corsOrigin: process.env.CORS_ORIGIN ?? '*',
   logLevel: process.env.LOG_LEVEL ?? 'info',
+  apiPrefix: process.env.API_PREFIX ?? 'api',
+  swaggerEnabled: (process.env.SWAGGER_ENABLED ?? 'true') === 'true',
+  name: process.env.APP_NAME ?? 'API',
+  description: process.env.APP_DESCRIPTION ?? 'Enterprise NestJS starter API',
 }));
 
 export const redisConfig = registerAs('redis', () => ({
@@ -23,4 +27,8 @@ export const throttleConfig = registerAs('throttle', () => ({
   limit: parseInt(process.env.THROTTLE_LIMIT ?? '100', 10),
 }));
 
-export default [appConfig, redisConfig, jwtConfig, throttleConfig];
+export const authConfig = registerAs('auth', () => ({
+  bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10', 10),
+}));
+
+export default [appConfig, redisConfig, jwtConfig, throttleConfig, authConfig];
