@@ -2,6 +2,8 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
+<p align="center">English | <a href="./README.zh-CN.md">简体中文</a></p>
+
 ## Description
 
 Enterprise-ready NestJS starter template: PostgreSQL (Prisma 7) + Redis caching + JWT auth skeleton + health checks + structured logging + Docker Compose one-command startup.
