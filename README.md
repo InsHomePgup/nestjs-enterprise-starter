@@ -72,6 +72,15 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
+## Roadmap / TODO
+
+- [ ] User module: add `UserService` + `UserController` (list/update/delete); currently `UserRepository` is only consumed internally by `AuthService`
+- [ ] Auth: refresh token, logout, and password reset flows
+- [ ] Auth: RBAC (roles/permissions) — mentioned as an extension point but not yet implemented
+- [ ] Tests: unit tests for `UserRepository`, e2e tests for the `auth` endpoints (register/login/me)
+- [ ] CI: `ci.yml` only runs on `workflow_dispatch`; wire it to trigger on `push`/`pull_request`
+- [ ] API versioning strategy
+
 ## Resources
 
 - [NestJS Documentation](https://docs.nestjs.com)

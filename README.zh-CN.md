@@ -72,6 +72,15 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
+## 路线图 / TODO
+
+- [ ] User 模块：补充 `UserService` + `UserController`（列表/更新/删除）；目前 `UserRepository` 仅被 `AuthService` 内部调用
+- [ ] Auth：补充 refresh token、登出、找回密码流程
+- [ ] Auth：实现 RBAC（角色/权限）—— 目前仅在说明中提及扩展点，尚未实现
+- [ ] 测试：为 `UserRepository` 补充单元测试，为 `auth` 相关接口（register/login/me）补充 e2e 测试
+- [ ] CI：`ci.yml` 目前仅支持 `workflow_dispatch` 手动触发，需接入 `push`/`pull_request` 自动触发
+- [ ] 制定 API 版本管理策略
+
 ## 参考资料
 
 - [NestJS 官方文档](https://docs.nestjs.com)
