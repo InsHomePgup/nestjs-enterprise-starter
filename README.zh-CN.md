@@ -59,6 +59,8 @@ $ cp .env.example .env   # 首次运行前请修改 JWT_SECRET 等配置
 $ docker compose up --build
 ```
 
+在全新的 Debian 主机上安装 Docker 并运维本项目的完整步骤，参见 [OPS.zh-CN.md](./OPS.zh-CN.md)。
+
 ## 运行测试
 
 ```bash

@@ -59,6 +59,8 @@ $ cp .env.example .env   # adjust JWT_SECRET etc. before first run
 $ docker compose up --build
 ```
 
+For a full walkthrough of installing Docker on a fresh Debian host and operating the stack, see [OPS.md](./OPS.md).
+
 ## Run tests
 
 ```bash
