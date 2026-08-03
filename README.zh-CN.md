@@ -76,10 +76,14 @@ $ pnpm run test:cov
 
 ## 路线图 / TODO
 
-- [ ] User 模块：补充 `UserService` + `UserController`（列表/更新/删除）；目前 `UserRepository` 仅被 `AuthService` 内部调用
-- [ ] Auth：补充 refresh token、登出、找回密码流程
-- [ ] Auth：实现 RBAC（角色/权限）—— 目前仅在说明中提及扩展点，尚未实现
-- [ ] 测试：为 `UserRepository` 补充单元测试，为 `auth` 相关接口（register/login/me）补充 e2e 测试
+- [x] User 模块：`UserService` + `UserController`（分页列表/详情/更新/删除），仅管理员可访问
+- [x] Auth：refresh token（数据库存储，使用后轮换）、登出、找回密码流程
+- [x] Auth：基于单一 `role` 字段（`USER`/`ADMIN`）的 RBAC，配合 `RolesGuard` + `@Roles()`
+- [x] 统一业务错误码（`BusinessException`，错误响应体新增 `code` 字段）
+- [x] 通用分页原语（`PaginationQueryDto`、`PaginatedResult<T>`），可被其他列表接口复用
+- [x] 测试：`AuthService`/`UserService` 单元测试，Auth 流程与 User CRUD/RBAC 的 e2e 测试
+- [ ] User 软删除（目前是硬删除）
+- [ ] 多设备会话管理（查看/撤销某用户的单个 refresh token）
 - [ ] CI：`ci.yml` 目前仅支持 `workflow_dispatch` 手动触发，需接入 `push`/`pull_request` 自动触发
 - [ ] 制定 API 版本管理策略
 

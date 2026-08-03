@@ -20,6 +20,7 @@ export const redisConfig = registerAs('redis', () => ({
 export const jwtConfig = registerAs('jwt', () => ({
   secret: process.env.JWT_SECRET,
   expiresIn: process.env.JWT_EXPIRES_IN ?? '1d',
+  refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
 }));
 
 export const throttleConfig = registerAs('throttle', () => ({
@@ -29,6 +30,7 @@ export const throttleConfig = registerAs('throttle', () => ({
 
 export const authConfig = registerAs('auth', () => ({
   bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10', 10),
+  passwordResetExpiresMinutes: parseInt(process.env.PASSWORD_RESET_EXPIRES_MIN ?? '30', 10),
 }));
 
 export default [appConfig, redisConfig, jwtConfig, throttleConfig, authConfig];

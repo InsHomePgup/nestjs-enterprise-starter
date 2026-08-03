@@ -76,10 +76,14 @@ $ pnpm run test:cov
 
 ## Roadmap / TODO
 
-- [ ] User module: add `UserService` + `UserController` (list/update/delete); currently `UserRepository` is only consumed internally by `AuthService`
-- [ ] Auth: refresh token, logout, and password reset flows
-- [ ] Auth: RBAC (roles/permissions) — mentioned as an extension point but not yet implemented
-- [ ] Tests: unit tests for `UserRepository`, e2e tests for the `auth` endpoints (register/login/me)
+- [x] User module: `UserService` + `UserController` (paginated list/detail/update/delete), admin-only
+- [x] Auth: refresh token (DB-backed, rotated on use), logout, and password reset flows
+- [x] Auth: RBAC via a single `role` field (`USER`/`ADMIN`) with `RolesGuard` + `@Roles()`
+- [x] Unified business error codes (`BusinessException` + `code` field in error responses)
+- [x] Generic pagination primitives (`PaginationQueryDto`, `PaginatedResult<T>`) reusable across list endpoints
+- [x] Tests: unit tests for `AuthService`/`UserService`, e2e tests for auth flows and user CRUD/RBAC
+- [ ] Soft delete for `User` (currently a hard delete)
+- [ ] Multi-device session management (list/revoke individual refresh tokens per user)
 - [ ] CI: `ci.yml` only runs on `workflow_dispatch`; wire it to trigger on `push`/`pull_request`
 - [ ] API versioning strategy
 
