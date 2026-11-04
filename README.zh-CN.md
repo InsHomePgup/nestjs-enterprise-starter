@@ -131,7 +131,7 @@ $ pnpm run test:cov
 - [x] 测试：`AuthService`/`UserService` 单元测试，Auth 流程与 User CRUD/RBAC 的 e2e 测试
 - [ ] User 软删除（目前是硬删除）
 - [ ] 多设备会话管理（查看/撤销某用户的单个 refresh token）
-- [x] CI：push / PR 自动触发，内置 Postgres、Redis 服务，并检查迁移是否与 schema 一致
+- [x] CI：手动触发（`gh workflow run CI`），内置 Postgres、Redis 服务，并检查迁移是否与 schema 一致；可选的扩展 CI 见 [docs/ci-options.md](./docs/ci-options.md)
 - [ ] 制定 API 版本管理策略
 
 ## 参考资料

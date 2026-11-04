@@ -132,7 +132,7 @@ Versions follow [SemVer](https://semver.org/). [release-it](https://github.com/r
 - [x] Tests: unit tests for `AuthService`/`UserService`, e2e tests for auth flows and user CRUD/RBAC
 - [ ] Soft delete for `User` (currently a hard delete)
 - [ ] Multi-device session management (list/revoke individual refresh tokens per user)
-- [x] CI: runs on push / PR with Postgres and Redis services, and checks migrations match the schema
+- [x] CI: manually triggered (`gh workflow run CI`) with Postgres and Redis services, and checks migrations match the schema; optional extra pipelines in [docs/ci-options.md](./docs/ci-options.md) (Chinese)
 - [ ] API versioning strategy
 
 ## Resources

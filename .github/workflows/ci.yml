@@ -1,9 +1,9 @@
 name: CI
 
+# Manual only: run from GitHub UI (Actions -> CI -> Run workflow) or `gh workflow run CI`.
+# To run automatically, add `push: { branches: [main] }` / `pull_request:` here.
+# Optional extra pipelines are described in docs/ci-options.md.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
