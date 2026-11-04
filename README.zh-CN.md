@@ -73,25 +73,29 @@ $ docker compose up --build
 
 在全新的 Debian 主机上安装 Docker 并运维本项目的完整步骤，参见 [OPS.zh-CN.md](./OPS.zh-CN.md)。
 
-## 错误响应格式
+## 接口契约与错误码
 
-所有错误都返回统一结构，前端可根据 `code` 做分支处理：
+- **接口文档**：Swagger UI 地址是 `/docs`，原始 JSON 在 `/docs-json`。文档由 Swagger CLI 插件根据 TypeScript 类型和 JSDoc 注释自动生成；有接口或 DTO 字段没写注释时，e2e 的文档质量检查会失败。
+- **契约文件**：`pnpm openapi:export` 生成 `openapi.json`。它提交在仓库里，CI 会检查它是否最新，每次发版都会作为附件上传到 GitHub Release。前端用它生成带类型的请求代码，例如 `npx openapi-typescript openapi.json -o schema.d.ts`，或者用 `npx orval`。
+- **成功响应**统一包装为 `{ statusCode, data, path, requestId, timestamp }`。
+- **错误响应**使用统一结构，并带有固定不变的业务错误码 `code`：
 
 ```json
 {
   "statusCode": 400,
   "code": "COMMON_VALIDATION_FAILED",
   "message": "Validation failed",
-  "details": ["email must be an email"],
-  "error": "BadRequestException",
+  "details": [{ "field": "email", "rule": "isEmail", "message": "email must be an email" }],
+  "error": "Bad Request",
   "path": "/api/auth/register",
   "requestId": "4f1c...",
   "timestamp": "2026-11-04T02:00:00.000Z"
 }
 ```
 
-- `message` 始终是字符串；`details` 仅在参数校验失败时出现。
-- 错误码定义见 `src/common/constants/error-code.enum.ts`。数据库唯一约束冲突、记录不存在等 Prisma 错误会自动映射为 409 / 404。
+- 全部错误码及其 HTTP 状态、含义和前端处理方式：[docs/error-codes.md](./docs/error-codes.md)（由 `pnpm docs:errors` 自动生成）。
+- 排查问题：每个响应都带 `X-Request-Id` 头；每个请求只产生一条访问日志，包含 `reqId`、`userId`、`errorCode`，5xx 还带完整堆栈。日志里的敏感信息已打码。
+- 怎样写接口、DTO 和错误码才能保证上面这些都成立：[docs/api-conventions.md](./docs/api-conventions.md)。
 
 ## 运行测试
 
@@ -122,6 +126,8 @@ $ pnpm run test:cov
 - 发版会依次：lint + 单测 + 构建 → 升级 `package.json` 版本 → 生成 CHANGELOG → 提交 `chore: release vX.Y.Z` → 打 tag → 推送 → 创建 GitHub Release。
 
 ## 路线图 / TODO
+
+> 完整的候选功能清单（含覆盖状态、工作量与依赖关系）见 [docs/feature-coverage.md](./docs/feature-coverage.md)，按实际需求挑选实施。
 
 - [x] User 模块：`UserService` + `UserController`（分页列表/详情/更新/删除），仅管理员可访问
 - [x] Auth：refresh token（数据库存储，使用后轮换）、登出、找回密码流程
