@@ -32,4 +32,4 @@ COPY --chown=app:app --from=build /app/dist ./dist
 COPY --chown=app:app --from=build /app/prisma ./prisma
 USER app
 EXPOSE 3000
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/src/main"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/prisma/seed.js && node dist/src/main"]
