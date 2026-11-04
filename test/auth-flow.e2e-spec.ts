@@ -38,6 +38,54 @@ describe('Auth flows (e2e)', () => {
     expect(reuseRes.body.code).toBe('AUTH_TOKEN_INVALID');
   });
 
+  it('lets only one of several concurrent refreshes with the same token succeed', async () => {
+    const email = `refresh-race-${Date.now()}@example.com`;
+    const server = app.getHttpServer();
+
+    const registerRes = await request(server)
+      .post('/api/auth/register')
+      .send({ email, password: 'password123' })
+      .expect(201);
+    const refreshToken: string = registerRes.body.data.refreshToken;
+
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        request(server).post('/api/auth/refresh').send({ refreshToken }),
+      ),
+    );
+    const statuses = results.map((res) => res.status).sort();
+    expect(statuses).toEqual([201, 401, 401, 401, 401]);
+  });
+
+  it('returns 409 AUTH_EMAIL_TAKEN for concurrent registrations of the same email', async () => {
+    const email = `register-race-${Date.now()}@example.com`;
+    const server = app.getHttpServer();
+
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        request(server).post('/api/auth/register').send({ email, password: 'password123' }),
+      ),
+    );
+    const statuses = results.map((res) => res.status).sort();
+    expect(statuses).toEqual([201, 409, 409, 409, 409]);
+    for (const res of results.filter((r) => r.status === 409)) {
+      expect(res.body.code).toBe('AUTH_EMAIL_TAKEN');
+    }
+  });
+
+  it('returns validation errors as a flat message plus details', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({ email: 'not-an-email', password: 'short' })
+      .expect(400);
+    expect(res.body).toMatchObject({
+      statusCode: 400,
+      code: 'COMMON_VALIDATION_FAILED',
+      message: 'Validation failed',
+      details: expect.arrayContaining([expect.stringContaining('email')]),
+    });
+  });
+
   it('logs out by revoking the refresh token', async () => {
     const email = `logout-${Date.now()}@example.com`;
     const server = app.getHttpServer();

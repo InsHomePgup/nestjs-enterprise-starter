@@ -31,8 +31,12 @@ export class UserRepository {
     return this.prisma.user.create({ data });
   }
 
-  update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
-    return this.prisma.user.update({ where: { id }, data });
+  update(
+    id: string,
+    data: Prisma.UserUpdateInput,
+    db: Prisma.TransactionClient = this.prisma,
+  ): Promise<User> {
+    return db.user.update({ where: { id }, data });
   }
 
   delete(id: string): Promise<User> {

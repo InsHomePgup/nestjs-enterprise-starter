@@ -4,6 +4,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import { Logger } from 'nestjs-pino';
 import { BusinessException } from '../../common/exceptions/business.exception';
+import { Prisma } from '../../generated/prisma/client';
+import { PrismaService } from '../../infra/prisma/prisma.service';
 import { UserRepository } from '../user/user.repository';
 import { AuthService } from './auth.service';
 import { TokenRepository } from './token.repository';
@@ -20,14 +22,15 @@ describe('AuthService', () => {
   };
   let tokenRepository: {
     createRefreshToken: jest.Mock;
-    findValidRefreshToken: jest.Mock;
-    revokeRefreshToken: jest.Mock;
+    consumeRefreshToken: jest.Mock;
     revokeRefreshTokenByRawToken: jest.Mock;
     revokeAllRefreshTokensForUser: jest.Mock;
     createPasswordResetToken: jest.Mock;
     findValidPasswordResetToken: jest.Mock;
-    markPasswordResetTokenUsed: jest.Mock;
+    consumePasswordResetToken: jest.Mock;
   };
+  const tx = { __tx: true };
+  let prisma: { $transaction: jest.Mock };
   let jwtService: { sign: jest.Mock };
   let configService: { get: jest.Mock };
   let logger: { debug: jest.Mock };
@@ -41,13 +44,15 @@ describe('AuthService', () => {
     };
     tokenRepository = {
       createRefreshToken: jest.fn().mockResolvedValue({ token: 'raw-refresh-token' }),
-      findValidRefreshToken: jest.fn(),
-      revokeRefreshToken: jest.fn(),
+      consumeRefreshToken: jest.fn(),
       revokeRefreshTokenByRawToken: jest.fn(),
       revokeAllRefreshTokensForUser: jest.fn(),
       createPasswordResetToken: jest.fn().mockResolvedValue({ token: 'raw-reset-token' }),
       findValidPasswordResetToken: jest.fn(),
-      markPasswordResetTokenUsed: jest.fn(),
+      consumePasswordResetToken: jest.fn(),
+    };
+    prisma = {
+      $transaction: jest.fn((fn: (client: unknown) => Promise<unknown>) => fn(tx)),
     };
     jwtService = { sign: jest.fn().mockReturnValue('signed-jwt') };
     configService = {
@@ -65,6 +70,7 @@ describe('AuthService', () => {
         { provide: TokenRepository, useValue: tokenRepository },
         { provide: JwtService, useValue: jwtService },
         { provide: ConfigService, useValue: configService },
+        { provide: PrismaService, useValue: prisma },
         { provide: Logger, useValue: logger },
       ],
     }).compile();
@@ -115,6 +121,18 @@ describe('AuthService', () => {
         }),
       ).rejects.toThrow(BusinessException);
       expect(userRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('maps a concurrent unique-constraint violation to AUTH_EMAIL_TAKEN', async () => {
+      userRepository.findByEmail.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+      userRepository.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('dup', { code: 'P2002', clientVersion: 'test' }),
+      );
+
+      await expect(
+        service.register({ email: 'a@example.com', password: 'plain-password' }),
+      ).rejects.toMatchObject({ response: { code: 'AUTH_EMAIL_TAKEN' } });
     });
   });
 
@@ -167,7 +185,7 @@ describe('AuthService', () => {
 
   describe('refresh', () => {
     it('rotates the refresh token and issues a new access token', async () => {
-      tokenRepository.findValidRefreshToken.mockResolvedValue({
+      tokenRepository.consumeRefreshToken.mockResolvedValue({
         id: 'token-1',
         userId: 'user-1',
       });
@@ -180,12 +198,12 @@ describe('AuthService', () => {
 
       const result = await service.refresh({ refreshToken: 'old-refresh-token' });
 
-      expect(tokenRepository.revokeRefreshToken).toHaveBeenCalledWith('token-1');
+      expect(tokenRepository.consumeRefreshToken).toHaveBeenCalledWith('old-refresh-token');
       expect(result.refreshToken).toBe('raw-refresh-token');
     });
 
     it('throws BusinessException when the refresh token is invalid or expired', async () => {
-      tokenRepository.findValidRefreshToken.mockResolvedValue(null);
+      tokenRepository.consumeRefreshToken.mockResolvedValue(null);
 
       await expect(service.refresh({ refreshToken: 'bad-token' })).rejects.toThrow(
         BusinessException,
@@ -221,8 +239,9 @@ describe('AuthService', () => {
   });
 
   describe('resetPassword', () => {
-    it('updates the password and revokes existing sessions', async () => {
-      tokenRepository.findValidPasswordResetToken.mockResolvedValue({
+    it('spends the token, updates the password and revokes sessions in one transaction', async () => {
+      tokenRepository.findValidPasswordResetToken.mockResolvedValue({ id: 'reset-1' });
+      tokenRepository.consumePasswordResetToken.mockResolvedValue({
         id: 'reset-1',
         userId: 'user-1',
       });
@@ -230,19 +249,35 @@ describe('AuthService', () => {
 
       await service.resetPassword({ token: 'raw-reset-token', newPassword: 'new-password123' });
 
-      expect(userRepository.update).toHaveBeenCalledWith('user-1', {
-        password: 'new-hashed-password',
-      });
-      expect(tokenRepository.markPasswordResetTokenUsed).toHaveBeenCalledWith('reset-1');
-      expect(tokenRepository.revokeAllRefreshTokensForUser).toHaveBeenCalledWith('user-1');
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+      expect(tokenRepository.consumePasswordResetToken).toHaveBeenCalledWith('raw-reset-token', tx);
+      expect(userRepository.update).toHaveBeenCalledWith(
+        'user-1',
+        { password: 'new-hashed-password' },
+        tx,
+      );
+      expect(tokenRepository.revokeAllRefreshTokensForUser).toHaveBeenCalledWith('user-1', tx);
     });
 
-    it('throws BusinessException when the reset token is invalid or expired', async () => {
+    it('throws without hashing when the reset token is invalid or expired', async () => {
       tokenRepository.findValidPasswordResetToken.mockResolvedValue(null);
 
       await expect(
         service.resetPassword({ token: 'bad-token', newPassword: 'new-password123' }),
       ).rejects.toThrow(BusinessException);
+      expect(bcrypt.hash).not.toHaveBeenCalled();
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+
+    it('rolls back when the token was spent concurrently after the pre-check', async () => {
+      tokenRepository.findValidPasswordResetToken.mockResolvedValue({ id: 'reset-1' });
+      tokenRepository.consumePasswordResetToken.mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('new-hashed-password');
+
+      await expect(
+        service.resetPassword({ token: 'raw-reset-token', newPassword: 'new-password123' }),
+      ).rejects.toThrow(BusinessException);
+      expect(userRepository.update).not.toHaveBeenCalled();
     });
   });
 });
