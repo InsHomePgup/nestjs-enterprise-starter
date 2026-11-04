@@ -28,14 +28,14 @@ describe('Auth flows (e2e)', () => {
     const refreshRes = await request(server)
       .post('/api/auth/refresh')
       .send({ refreshToken: firstRefreshToken })
-      .expect(201);
+      .expect(200);
     expect(refreshRes.body.data.refreshToken).not.toBe(firstRefreshToken);
 
     const reuseRes = await request(server)
       .post('/api/auth/refresh')
       .send({ refreshToken: firstRefreshToken })
       .expect(401);
-    expect(reuseRes.body.code).toBe('AUTH_TOKEN_INVALID');
+    expect(reuseRes.body.code).toBe('AUTH_REFRESH_TOKEN_INVALID');
   });
 
   it('lets only one of several concurrent refreshes with the same token succeed', async () => {
@@ -54,7 +54,7 @@ describe('Auth flows (e2e)', () => {
       ),
     );
     const statuses = results.map((res) => res.status).sort();
-    expect(statuses).toEqual([201, 401, 401, 401, 401]);
+    expect(statuses).toEqual([200, 401, 401, 401, 401]);
   });
 
   it('returns 409 AUTH_EMAIL_TAKEN for concurrent registrations of the same email', async () => {
@@ -82,7 +82,10 @@ describe('Auth flows (e2e)', () => {
       statusCode: 400,
       code: 'COMMON_VALIDATION_FAILED',
       message: 'Validation failed',
-      details: expect.arrayContaining([expect.stringContaining('email')]),
+      details: expect.arrayContaining([
+        { field: 'email', rule: 'isEmail', message: expect.any(String) },
+        { field: 'password', rule: 'minLength', message: expect.any(String) },
+      ]),
     });
   });
 
@@ -135,7 +138,7 @@ describe('Auth flows (e2e)', () => {
     await request(server)
       .post('/api/auth/login')
       .send({ email, password: 'brand-new-password123' })
-      .expect(201);
+      .expect(200);
 
     debugSpy.mockRestore();
   });

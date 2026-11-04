@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ErrorCode } from '../../common/constants/error-code.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import type { PaginatedResult } from '../../common/interfaces/paginated-result.interface';
@@ -37,7 +37,7 @@ export class UserService {
   async findOne(id: string): Promise<UserResponseDto> {
     const user = await this.userRepository.findById(id);
     if (!user) {
-      throw new BusinessException(ErrorCode.USER_NOT_FOUND, 'User not found', HttpStatus.NOT_FOUND);
+      throw new BusinessException(ErrorCode.USER_NOT_FOUND);
     }
     return toUserResponse(user);
   }

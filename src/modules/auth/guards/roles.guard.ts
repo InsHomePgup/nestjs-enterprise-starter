@@ -1,5 +1,5 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ErrorCode } from '../../../common/constants/error-code.enum';
 import { BusinessException } from '../../../common/exceptions/business.exception';
@@ -21,11 +21,7 @@ export class RolesGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<{ user?: { role?: Role } }>();
     if (!requiredRoles.includes(request.user?.role as Role)) {
-      throw new BusinessException(
-        ErrorCode.AUTH_FORBIDDEN,
-        'Insufficient permissions',
-        HttpStatus.FORBIDDEN,
-      );
+      throw new BusinessException(ErrorCode.AUTH_FORBIDDEN);
     }
     return true;
   }

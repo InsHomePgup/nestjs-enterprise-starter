@@ -6,6 +6,7 @@ export const appConfig = registerAs('app', () => ({
   corsOrigin: process.env.CORS_ORIGIN ?? '*',
   logLevel: process.env.LOG_LEVEL ?? 'info',
   apiPrefix: process.env.API_PREFIX ?? 'api',
+  bodyLimit: process.env.BODY_LIMIT ?? '100kb',
   swaggerEnabled: (process.env.SWAGGER_ENABLED ?? 'true') === 'true',
   name: process.env.APP_NAME ?? 'API',
   description: process.env.APP_DESCRIPTION ?? 'Enterprise NestJS starter API',

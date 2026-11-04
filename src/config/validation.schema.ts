@@ -24,6 +24,9 @@ export const validationSchema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
   PORT: Joi.number().default(3000),
   API_PREFIX: Joi.string().default('api'),
+  BODY_LIMIT: Joi.string()
+    .pattern(/^\d+(b|kb|mb)$/i)
+    .default('100kb'),
   SWAGGER_ENABLED: Joi.boolean().default(true),
   APP_NAME: Joi.string().default('API'),
   APP_DESCRIPTION: Joi.string().default('Enterprise NestJS starter API'),
