@@ -245,13 +245,15 @@ jobs:
 
 ## 7. OpenAPI 契约检查（前后端通信）
 
-**解决的问题**：这就是之前定下的"用 openapi.json 和前端通信"方案在 CI 中的部分。目的是保证后端每次改动接口，前端都能知道，而且破坏性改动不会被悄悄合并进去。
+**解决的问题**：这就是之前定下的"用 openapi.json 和前端通信"方案在 CI 中的部分。目的是保证后端每次改动接口，前端都能知道。
+
+**现状**：已实现（见 `ci.yml` 的最后两步）。
 
 **做法**（属于第四步，依赖 `pnpm openapi:export` 脚本，目前还没有实现）：
 
 1. CI 里执行 `pnpm openapi:export`，生成 `openapi.json`。
 2. **漂移检查**：如果生成的结果和仓库里提交的 `openapi.json` 不一样，说明改了接口但没有更新契约文件，CI 失败。
-3. **破坏性改动检查**：用 [oasdiff](https://github.com/oasdiff/oasdiff) 和上一个 release 的 `openapi.json` 对比。如果出现删除字段、修改类型、新增必填参数等情况，而 commit 又没有用 `feat!:` 声明，CI 失败。
+3. **破坏性改动报告**：用 [oasdiff](https://github.com/oasdiff/oasdiff) 和上一个 release 的 `openapi.json` 对比，列出删除字段、修改类型、新增必填参数等破坏性改动。**目前只提示、不会让 CI 失败**（项目处于实验阶段，允许破坏性改动）；上线后可以改为"未用 `feat!:` 声明就失败"。
 4. **作为发版附件**：在 Release 工作流里把 `openapi.json` 作为附件上传到 GitHub Release，前端按版本号拉取。
 
 ```bash

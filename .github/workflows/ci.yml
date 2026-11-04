@@ -90,10 +90,9 @@ jobs:
             exit 1
           fi
 
-      # Compares against openapi.json of the latest release tag. A breaking change is only
-      # allowed when a commit since that tag declares it with "!" (e.g. "feat!: ..."),
-      # which also makes release-it bump the major version.
-      - name: No undeclared breaking API changes
+      # Report-only: lists breaking API changes since the latest release tag so you know what
+      # changed for clients. Never fails the build (this project accepts breaking changes).
+      - name: Report breaking API changes (informational)
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
           if [ -z "$LAST_TAG" ] || ! git cat-file -e "$LAST_TAG:openapi.json" 2>/dev/null; then
@@ -101,13 +100,7 @@ jobs:
             exit 0
           fi
           mkdir -p /tmp/oas && git show "$LAST_TAG:openapi.json" > /tmp/oas/base.json
-          if docker run --rm -v /tmp/oas:/base:ro -v "$PWD":/specs:ro tufin/oasdiff:v1.34.1 \
+          if ! docker run --rm -v /tmp/oas:/base:ro -v "$PWD":/specs:ro tufin/oasdiff:v1.34.1 \
                breaking /base/base.json /specs/openapi.json --fail-on ERR --flatten-allof; then
-            exit 0
+            echo "::warning::Breaking API changes since $LAST_TAG (see the list above). Not blocking."
           fi
-          if git log "$LAST_TAG"..HEAD --format=%s | grep -qE '^[a-z]+(\([^)]+\))?!:'; then
-            echo "::warning::Breaking API change declared with '!' since $LAST_TAG; the next release will be major."
-            exit 0
-          fi
-          echo "::error::Breaking API change since $LAST_TAG without a 'feat!:' / 'fix!:' commit."
-          exit 1
