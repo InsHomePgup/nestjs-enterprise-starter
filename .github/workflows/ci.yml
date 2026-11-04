@@ -45,6 +45,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags are needed for the breaking-change check
 
       # pnpm version comes from the `packageManager` field in package.json
       - uses: pnpm/action-setup@v4
@@ -78,3 +80,34 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # openapi.json is the contract shared with frontends; it must match the code.
+      - name: OpenAPI contract is up to date
+        run: |
+          node dist/src/cli/export-openapi.js
+          if ! git diff --exit-code openapi.json; then
+            echo "::error::openapi.json is stale. Run 'pnpm openapi:export' and commit the result."
+            exit 1
+          fi
+
+      # Compares against openapi.json of the latest release tag. A breaking change is only
+      # allowed when a commit since that tag declares it with "!" (e.g. "feat!: ..."),
+      # which also makes release-it bump the major version.
+      - name: No undeclared breaking API changes
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          if [ -z "$LAST_TAG" ] || ! git cat-file -e "$LAST_TAG:openapi.json" 2>/dev/null; then
+            echo "No openapi.json in the latest release ($LAST_TAG); skipping."
+            exit 0
+          fi
+          mkdir -p /tmp/oas && git show "$LAST_TAG:openapi.json" > /tmp/oas/base.json
+          if docker run --rm -v /tmp/oas:/base:ro -v "$PWD":/specs:ro tufin/oasdiff:v1.34.1 \
+               breaking /base/base.json /specs/openapi.json --fail-on ERR --flatten-allof; then
+            exit 0
+          fi
+          if git log "$LAST_TAG"..HEAD --format=%s | grep -qE '^[a-z]+(\([^)]+\))?!:'; then
+            echo "::warning::Breaking API change declared with '!' since $LAST_TAG; the next release will be major."
+            exit 0
+          fi
+          echo "::error::Breaking API change since $LAST_TAG without a 'feat!:' / 'fix!:' commit."
+          exit 1

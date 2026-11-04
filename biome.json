@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!dist", "!coverage", "!src/generated"]
+    "includes": ["**", "!dist", "!coverage", "!src/generated", "!openapi.json"]
   },
   "formatter": {
     "enabled": true,

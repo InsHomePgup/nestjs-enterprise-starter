@@ -1,0 +1,4637 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api": {
+      "get": {
+        "operationId": "app_getInfo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AppInfoDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "服务信息",
+        "tags": [
+          "app"
+        ],
+        "description": "返回服务名称和后端版本号，可用于前端确认当前对接的后端版本。",
+        "x-error-codes": [
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The Health Check is successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {},
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/health",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/health",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The Health Check is not successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        },
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "健康检查",
+        "tags": [
+          "health"
+        ],
+        "description": "检查数据库和 Redis 连通性：全部正常返回 200，任一异常返回 503。\n不经过统一响应包装，返回 Terminus 的标准结构，供负载均衡 / 容器编排探测使用。",
+        "x-error-codes": [
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "operationId": "auth_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 201,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AuthResponseDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。\n- `COMMON_MALFORMED_JSON`：请求体不是合法的 JSON。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED",
+                            "COMMON_MALFORMED_JSON"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/auth/register",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "COMMON_MALFORMED_JSON": {
+                    "summary": "COMMON_MALFORMED_JSON",
+                    "description": "请求体不是合法的 JSON。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_MALFORMED_JSON",
+                      "message": "Malformed JSON body",
+                      "error": "Bad Request",
+                      "path": "/api/auth/register",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "可能的错误码：\n\n- `AUTH_EMAIL_TAKEN`：注册时邮箱已被占用。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_EMAIL_TAKEN"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_EMAIL_TAKEN": {
+                    "summary": "AUTH_EMAIL_TAKEN",
+                    "description": "注册时邮箱已被占用。",
+                    "value": {
+                      "statusCode": 409,
+                      "code": "AUTH_EMAIL_TAKEN",
+                      "message": "Email is already registered",
+                      "error": "Conflict",
+                      "path": "/api/auth/register",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "可能的错误码：\n\n- `COMMON_PAYLOAD_TOO_LARGE`：请求体超过服务端允许的大小上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_PAYLOAD_TOO_LARGE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_PAYLOAD_TOO_LARGE": {
+                    "summary": "COMMON_PAYLOAD_TOO_LARGE",
+                    "description": "请求体超过服务端允许的大小上限。",
+                    "value": {
+                      "statusCode": 413,
+                      "code": "COMMON_PAYLOAD_TOO_LARGE",
+                      "message": "Payload too large",
+                      "error": "Payload Too Large",
+                      "path": "/api/auth/register",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/auth/register",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/auth/register",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/auth/register",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "注册",
+        "tags": [
+          "auth"
+        ],
+        "description": "创建普通用户（角色为 USER）并直接登录，返回令牌和用户信息。",
+        "x-error-codes": [
+          "AUTH_EMAIL_TAKEN",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "auth_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AuthResponseDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。\n- `COMMON_MALFORMED_JSON`：请求体不是合法的 JSON。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED",
+                            "COMMON_MALFORMED_JSON"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/auth/login",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "COMMON_MALFORMED_JSON": {
+                    "summary": "COMMON_MALFORMED_JSON",
+                    "description": "请求体不是合法的 JSON。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_MALFORMED_JSON",
+                      "message": "Malformed JSON body",
+                      "error": "Bad Request",
+                      "path": "/api/auth/login",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_INVALID_CREDENTIALS`：登录时邮箱不存在或密码错误（两者故意不区分，防止账号枚举）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_INVALID_CREDENTIALS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_INVALID_CREDENTIALS": {
+                    "summary": "AUTH_INVALID_CREDENTIALS",
+                    "description": "登录时邮箱不存在或密码错误（两者故意不区分，防止账号枚举）。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_INVALID_CREDENTIALS",
+                      "message": "Invalid email or password",
+                      "error": "Unauthorized",
+                      "path": "/api/auth/login",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "可能的错误码：\n\n- `COMMON_PAYLOAD_TOO_LARGE`：请求体超过服务端允许的大小上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_PAYLOAD_TOO_LARGE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_PAYLOAD_TOO_LARGE": {
+                    "summary": "COMMON_PAYLOAD_TOO_LARGE",
+                    "description": "请求体超过服务端允许的大小上限。",
+                    "value": {
+                      "statusCode": 413,
+                      "code": "COMMON_PAYLOAD_TOO_LARGE",
+                      "message": "Payload too large",
+                      "error": "Payload Too Large",
+                      "path": "/api/auth/login",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/auth/login",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/auth/login",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/auth/login",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "登录",
+        "tags": [
+          "auth"
+        ],
+        "description": "邮箱或密码错误时统一返回 `AUTH_INVALID_CREDENTIALS`，不区分具体原因。",
+        "x-error-codes": [
+          "AUTH_INVALID_CREDENTIALS",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "operationId": "auth_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/AuthResponseDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。\n- `COMMON_MALFORMED_JSON`：请求体不是合法的 JSON。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED",
+                            "COMMON_MALFORMED_JSON"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/auth/refresh",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "COMMON_MALFORMED_JSON": {
+                    "summary": "COMMON_MALFORMED_JSON",
+                    "description": "请求体不是合法的 JSON。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_MALFORMED_JSON",
+                      "message": "Malformed JSON body",
+                      "error": "Bad Request",
+                      "path": "/api/auth/refresh",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_REFRESH_TOKEN_INVALID`：refresh token 不存在、已过期、已被使用（轮换后旧 token 失效）或已登出。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_REFRESH_TOKEN_INVALID"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_REFRESH_TOKEN_INVALID": {
+                    "summary": "AUTH_REFRESH_TOKEN_INVALID",
+                    "description": "refresh token 不存在、已过期、已被使用（轮换后旧 token 失效）或已登出。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_REFRESH_TOKEN_INVALID",
+                      "message": "Refresh token is invalid or expired",
+                      "error": "Unauthorized",
+                      "path": "/api/auth/refresh",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "可能的错误码：\n\n- `COMMON_PAYLOAD_TOO_LARGE`：请求体超过服务端允许的大小上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_PAYLOAD_TOO_LARGE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_PAYLOAD_TOO_LARGE": {
+                    "summary": "COMMON_PAYLOAD_TOO_LARGE",
+                    "description": "请求体超过服务端允许的大小上限。",
+                    "value": {
+                      "statusCode": 413,
+                      "code": "COMMON_PAYLOAD_TOO_LARGE",
+                      "message": "Payload too large",
+                      "error": "Payload Too Large",
+                      "path": "/api/auth/refresh",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/auth/refresh",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/auth/refresh",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/auth/refresh",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "刷新令牌",
+        "tags": [
+          "auth"
+        ],
+        "description": "用 refresh token 换取新的 access token 和 refresh token。旧 refresh token 立即失效，\n同一个 refresh token 并发刷新时只有一个请求会成功，前端应保证同一时间只发起一次刷新。",
+        "x-error-codes": [
+          "AUTH_REFRESH_TOKEN_INVALID",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "auth_logout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。\n- `COMMON_MALFORMED_JSON`：请求体不是合法的 JSON。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED",
+                            "COMMON_MALFORMED_JSON"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/auth/logout",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "COMMON_MALFORMED_JSON": {
+                    "summary": "COMMON_MALFORMED_JSON",
+                    "description": "请求体不是合法的 JSON。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_MALFORMED_JSON",
+                      "message": "Malformed JSON body",
+                      "error": "Bad Request",
+                      "path": "/api/auth/logout",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "可能的错误码：\n\n- `COMMON_PAYLOAD_TOO_LARGE`：请求体超过服务端允许的大小上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_PAYLOAD_TOO_LARGE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_PAYLOAD_TOO_LARGE": {
+                    "summary": "COMMON_PAYLOAD_TOO_LARGE",
+                    "description": "请求体超过服务端允许的大小上限。",
+                    "value": {
+                      "statusCode": 413,
+                      "code": "COMMON_PAYLOAD_TOO_LARGE",
+                      "message": "Payload too large",
+                      "error": "Payload Too Large",
+                      "path": "/api/auth/logout",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/auth/logout",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/auth/logout",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/auth/logout",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "登出",
+        "tags": [
+          "auth"
+        ],
+        "description": "注销指定的 refresh token。token 无效或已注销时同样返回 204（幂等）。\naccess token 在过期前仍然有效，前端应同时清除本地保存的令牌。",
+        "x-error-codes": [
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "operationId": "auth_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。\n- `COMMON_MALFORMED_JSON`：请求体不是合法的 JSON。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED",
+                            "COMMON_MALFORMED_JSON"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/auth/forgot-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "COMMON_MALFORMED_JSON": {
+                    "summary": "COMMON_MALFORMED_JSON",
+                    "description": "请求体不是合法的 JSON。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_MALFORMED_JSON",
+                      "message": "Malformed JSON body",
+                      "error": "Bad Request",
+                      "path": "/api/auth/forgot-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "可能的错误码：\n\n- `COMMON_PAYLOAD_TOO_LARGE`：请求体超过服务端允许的大小上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_PAYLOAD_TOO_LARGE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_PAYLOAD_TOO_LARGE": {
+                    "summary": "COMMON_PAYLOAD_TOO_LARGE",
+                    "description": "请求体超过服务端允许的大小上限。",
+                    "value": {
+                      "statusCode": 413,
+                      "code": "COMMON_PAYLOAD_TOO_LARGE",
+                      "message": "Payload too large",
+                      "error": "Payload Too Large",
+                      "path": "/api/auth/forgot-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/auth/forgot-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/auth/forgot-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/auth/forgot-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "忘记密码",
+        "tags": [
+          "auth"
+        ],
+        "description": "向邮箱发送重置密码链接。无论邮箱是否注册都返回 204，防止账号枚举。",
+        "x-error-codes": [
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/auth/reset-password": {
+      "post": {
+        "operationId": "auth_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。\n- `COMMON_MALFORMED_JSON`：请求体不是合法的 JSON。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED",
+                            "COMMON_MALFORMED_JSON"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/auth/reset-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "COMMON_MALFORMED_JSON": {
+                    "summary": "COMMON_MALFORMED_JSON",
+                    "description": "请求体不是合法的 JSON。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_MALFORMED_JSON",
+                      "message": "Malformed JSON body",
+                      "error": "Bad Request",
+                      "path": "/api/auth/reset-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_RESET_TOKEN_INVALID`：重置密码链接中的 token 不存在、已过期或已被使用。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_RESET_TOKEN_INVALID"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_RESET_TOKEN_INVALID": {
+                    "summary": "AUTH_RESET_TOKEN_INVALID",
+                    "description": "重置密码链接中的 token 不存在、已过期或已被使用。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_RESET_TOKEN_INVALID",
+                      "message": "Password reset token is invalid or expired",
+                      "error": "Unauthorized",
+                      "path": "/api/auth/reset-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "可能的错误码：\n\n- `COMMON_PAYLOAD_TOO_LARGE`：请求体超过服务端允许的大小上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_PAYLOAD_TOO_LARGE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_PAYLOAD_TOO_LARGE": {
+                    "summary": "COMMON_PAYLOAD_TOO_LARGE",
+                    "description": "请求体超过服务端允许的大小上限。",
+                    "value": {
+                      "statusCode": 413,
+                      "code": "COMMON_PAYLOAD_TOO_LARGE",
+                      "message": "Payload too large",
+                      "error": "Payload Too Large",
+                      "path": "/api/auth/reset-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/auth/reset-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/auth/reset-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/auth/reset-password",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "重置密码",
+        "tags": [
+          "auth"
+        ],
+        "description": "使用邮件中的 token 设置新密码。成功后该用户所有设备的 refresh token 都会失效，需要重新登录。",
+        "x-error-codes": [
+          "AUTH_RESET_TOKEN_INVALID",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "operationId": "auth_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserResponseDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_TOKEN_MISSING`：需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。\n- `AUTH_TOKEN_EXPIRED`：access token 已过期。\n- `AUTH_TOKEN_INVALID`：access token 格式错误、签名不匹配或已被篡改。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_TOKEN_MISSING",
+                            "AUTH_TOKEN_EXPIRED",
+                            "AUTH_TOKEN_INVALID"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_TOKEN_MISSING": {
+                    "summary": "AUTH_TOKEN_MISSING",
+                    "description": "需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_MISSING",
+                      "message": "Access token is missing",
+                      "error": "Unauthorized",
+                      "path": "/api/auth/me",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_EXPIRED": {
+                    "summary": "AUTH_TOKEN_EXPIRED",
+                    "description": "access token 已过期。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_EXPIRED",
+                      "message": "Access token has expired",
+                      "error": "Unauthorized",
+                      "path": "/api/auth/me",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_INVALID": {
+                    "summary": "AUTH_TOKEN_INVALID",
+                    "description": "access token 格式错误、签名不匹配或已被篡改。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_INVALID",
+                      "message": "Access token is invalid",
+                      "error": "Unauthorized",
+                      "path": "/api/auth/me",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "可能的错误码：\n\n- `USER_NOT_FOUND`：指定的用户不存在或已被删除。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "USER_NOT_FOUND"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "USER_NOT_FOUND": {
+                    "summary": "USER_NOT_FOUND",
+                    "description": "指定的用户不存在或已被删除。",
+                    "value": {
+                      "statusCode": 404,
+                      "code": "USER_NOT_FOUND",
+                      "message": "User not found",
+                      "error": "Not Found",
+                      "path": "/api/auth/me",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/auth/me",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/auth/me",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/auth/me",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "获取当前登录用户",
+        "tags": [
+          "auth"
+        ],
+        "x-error-codes": [
+          "AUTH_TOKEN_MISSING",
+          "AUTH_TOKEN_EXPIRED",
+          "AUTH_TOKEN_INVALID",
+          "USER_NOT_FOUND",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "operationId": "user_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "页码，从 1 开始",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "example": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "每页条数，最大 100",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "example": 20,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "description": "按角色筛选",
+            "schema": {
+              "$ref": "#/components/schemas/Role"
+            }
+          },
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "description": "按邮箱模糊搜索（不区分大小写）",
+            "schema": {
+              "maxLength": 254,
+              "example": "alice",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserPageDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_TOKEN_MISSING`：需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。\n- `AUTH_TOKEN_EXPIRED`：access token 已过期。\n- `AUTH_TOKEN_INVALID`：access token 格式错误、签名不匹配或已被篡改。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_TOKEN_MISSING",
+                            "AUTH_TOKEN_EXPIRED",
+                            "AUTH_TOKEN_INVALID"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_TOKEN_MISSING": {
+                    "summary": "AUTH_TOKEN_MISSING",
+                    "description": "需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_MISSING",
+                      "message": "Access token is missing",
+                      "error": "Unauthorized",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_EXPIRED": {
+                    "summary": "AUTH_TOKEN_EXPIRED",
+                    "description": "access token 已过期。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_EXPIRED",
+                      "message": "Access token has expired",
+                      "error": "Unauthorized",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_INVALID": {
+                    "summary": "AUTH_TOKEN_INVALID",
+                    "description": "access token 格式错误、签名不匹配或已被篡改。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_INVALID",
+                      "message": "Access token is invalid",
+                      "error": "Unauthorized",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "可能的错误码：\n\n- `AUTH_FORBIDDEN`：当前用户的角色无权访问该接口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_FORBIDDEN"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_FORBIDDEN": {
+                    "summary": "AUTH_FORBIDDEN",
+                    "description": "当前用户的角色无权访问该接口。",
+                    "value": {
+                      "statusCode": 403,
+                      "code": "AUTH_FORBIDDEN",
+                      "message": "Insufficient permissions",
+                      "error": "Forbidden",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/users",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "用户列表",
+        "tags": [
+          "users"
+        ],
+        "description": "分页查询，按创建时间倒序；支持按邮箱模糊搜索和按角色筛选。",
+        "x-error-codes": [
+          "AUTH_TOKEN_MISSING",
+          "AUTH_TOKEN_EXPIRED",
+          "AUTH_TOKEN_INVALID",
+          "AUTH_FORBIDDEN",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "operationId": "user_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserResponseDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_TOKEN_MISSING`：需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。\n- `AUTH_TOKEN_EXPIRED`：access token 已过期。\n- `AUTH_TOKEN_INVALID`：access token 格式错误、签名不匹配或已被篡改。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_TOKEN_MISSING",
+                            "AUTH_TOKEN_EXPIRED",
+                            "AUTH_TOKEN_INVALID"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_TOKEN_MISSING": {
+                    "summary": "AUTH_TOKEN_MISSING",
+                    "description": "需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_MISSING",
+                      "message": "Access token is missing",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_EXPIRED": {
+                    "summary": "AUTH_TOKEN_EXPIRED",
+                    "description": "access token 已过期。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_EXPIRED",
+                      "message": "Access token has expired",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_INVALID": {
+                    "summary": "AUTH_TOKEN_INVALID",
+                    "description": "access token 格式错误、签名不匹配或已被篡改。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_INVALID",
+                      "message": "Access token is invalid",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "可能的错误码：\n\n- `AUTH_FORBIDDEN`：当前用户的角色无权访问该接口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_FORBIDDEN"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_FORBIDDEN": {
+                    "summary": "AUTH_FORBIDDEN",
+                    "description": "当前用户的角色无权访问该接口。",
+                    "value": {
+                      "statusCode": 403,
+                      "code": "AUTH_FORBIDDEN",
+                      "message": "Insufficient permissions",
+                      "error": "Forbidden",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "可能的错误码：\n\n- `USER_NOT_FOUND`：指定的用户不存在或已被删除。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "USER_NOT_FOUND"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "USER_NOT_FOUND": {
+                    "summary": "USER_NOT_FOUND",
+                    "description": "指定的用户不存在或已被删除。",
+                    "value": {
+                      "statusCode": 404,
+                      "code": "USER_NOT_FOUND",
+                      "message": "User not found",
+                      "error": "Not Found",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "用户详情",
+        "tags": [
+          "users"
+        ],
+        "x-error-codes": [
+          "USER_NOT_FOUND",
+          "AUTH_TOKEN_MISSING",
+          "AUTH_TOKEN_EXPIRED",
+          "AUTH_TOKEN_INVALID",
+          "AUTH_FORBIDDEN",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      },
+      "patch": {
+        "operationId": "user_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "statusCode",
+                    "data",
+                    "path",
+                    "requestId",
+                    "timestamp"
+                  ],
+                  "properties": {
+                    "statusCode": {
+                      "type": "integer",
+                      "example": 200,
+                      "description": "HTTP 状态码"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserResponseDto"
+                    },
+                    "path": {
+                      "type": "string",
+                      "example": "/api/...",
+                      "description": "请求路径"
+                    },
+                    "requestId": {
+                      "type": "string",
+                      "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "description": "请求 ID，与响应头 `X-Request-Id` 相同"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2026-11-04T02:00:00.000Z",
+                      "description": "服务端时间"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。\n- `COMMON_MALFORMED_JSON`：请求体不是合法的 JSON。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED",
+                            "COMMON_MALFORMED_JSON"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "COMMON_MALFORMED_JSON": {
+                    "summary": "COMMON_MALFORMED_JSON",
+                    "description": "请求体不是合法的 JSON。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_MALFORMED_JSON",
+                      "message": "Malformed JSON body",
+                      "error": "Bad Request",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_TOKEN_MISSING`：需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。\n- `AUTH_TOKEN_EXPIRED`：access token 已过期。\n- `AUTH_TOKEN_INVALID`：access token 格式错误、签名不匹配或已被篡改。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_TOKEN_MISSING",
+                            "AUTH_TOKEN_EXPIRED",
+                            "AUTH_TOKEN_INVALID"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_TOKEN_MISSING": {
+                    "summary": "AUTH_TOKEN_MISSING",
+                    "description": "需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_MISSING",
+                      "message": "Access token is missing",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_EXPIRED": {
+                    "summary": "AUTH_TOKEN_EXPIRED",
+                    "description": "access token 已过期。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_EXPIRED",
+                      "message": "Access token has expired",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_INVALID": {
+                    "summary": "AUTH_TOKEN_INVALID",
+                    "description": "access token 格式错误、签名不匹配或已被篡改。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_INVALID",
+                      "message": "Access token is invalid",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "可能的错误码：\n\n- `AUTH_FORBIDDEN`：当前用户的角色无权访问该接口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_FORBIDDEN"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_FORBIDDEN": {
+                    "summary": "AUTH_FORBIDDEN",
+                    "description": "当前用户的角色无权访问该接口。",
+                    "value": {
+                      "statusCode": 403,
+                      "code": "AUTH_FORBIDDEN",
+                      "message": "Insufficient permissions",
+                      "error": "Forbidden",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "可能的错误码：\n\n- `USER_NOT_FOUND`：指定的用户不存在或已被删除。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "USER_NOT_FOUND"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "USER_NOT_FOUND": {
+                    "summary": "USER_NOT_FOUND",
+                    "description": "指定的用户不存在或已被删除。",
+                    "value": {
+                      "statusCode": 404,
+                      "code": "USER_NOT_FOUND",
+                      "message": "User not found",
+                      "error": "Not Found",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "可能的错误码：\n\n- `COMMON_PAYLOAD_TOO_LARGE`：请求体超过服务端允许的大小上限。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_PAYLOAD_TOO_LARGE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_PAYLOAD_TOO_LARGE": {
+                    "summary": "COMMON_PAYLOAD_TOO_LARGE",
+                    "description": "请求体超过服务端允许的大小上限。",
+                    "value": {
+                      "statusCode": 413,
+                      "code": "COMMON_PAYLOAD_TOO_LARGE",
+                      "message": "Payload too large",
+                      "error": "Payload Too Large",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "更新用户",
+        "tags": [
+          "users"
+        ],
+        "description": "只更新请求中传入的字段。",
+        "x-error-codes": [
+          "USER_NOT_FOUND",
+          "AUTH_TOKEN_MISSING",
+          "AUTH_TOKEN_EXPIRED",
+          "AUTH_TOKEN_INVALID",
+          "AUTH_FORBIDDEN",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      },
+      "delete": {
+        "operationId": "user_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "可能的错误码：\n\n- `COMMON_VALIDATION_FAILED`：请求参数（body / query / path）未通过校验。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_VALIDATION_FAILED"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_VALIDATION_FAILED": {
+                    "summary": "COMMON_VALIDATION_FAILED",
+                    "description": "请求参数（body / query / path）未通过校验。",
+                    "value": {
+                      "statusCode": 400,
+                      "code": "COMMON_VALIDATION_FAILED",
+                      "message": "Validation failed",
+                      "details": [
+                        {
+                          "field": "email",
+                          "rule": "isEmail",
+                          "message": "email must be an email"
+                        }
+                      ],
+                      "error": "Bad Request",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "可能的错误码：\n\n- `AUTH_TOKEN_MISSING`：需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。\n- `AUTH_TOKEN_EXPIRED`：access token 已过期。\n- `AUTH_TOKEN_INVALID`：access token 格式错误、签名不匹配或已被篡改。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_TOKEN_MISSING",
+                            "AUTH_TOKEN_EXPIRED",
+                            "AUTH_TOKEN_INVALID"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_TOKEN_MISSING": {
+                    "summary": "AUTH_TOKEN_MISSING",
+                    "description": "需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_MISSING",
+                      "message": "Access token is missing",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_EXPIRED": {
+                    "summary": "AUTH_TOKEN_EXPIRED",
+                    "description": "access token 已过期。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_EXPIRED",
+                      "message": "Access token has expired",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  },
+                  "AUTH_TOKEN_INVALID": {
+                    "summary": "AUTH_TOKEN_INVALID",
+                    "description": "access token 格式错误、签名不匹配或已被篡改。",
+                    "value": {
+                      "statusCode": 401,
+                      "code": "AUTH_TOKEN_INVALID",
+                      "message": "Access token is invalid",
+                      "error": "Unauthorized",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "可能的错误码：\n\n- `AUTH_FORBIDDEN`：当前用户的角色无权访问该接口。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "AUTH_FORBIDDEN"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "AUTH_FORBIDDEN": {
+                    "summary": "AUTH_FORBIDDEN",
+                    "description": "当前用户的角色无权访问该接口。",
+                    "value": {
+                      "statusCode": 403,
+                      "code": "AUTH_FORBIDDEN",
+                      "message": "Insufficient permissions",
+                      "error": "Forbidden",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "可能的错误码：\n\n- `USER_NOT_FOUND`：指定的用户不存在或已被删除。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "USER_NOT_FOUND"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "USER_NOT_FOUND": {
+                    "summary": "USER_NOT_FOUND",
+                    "description": "指定的用户不存在或已被删除。",
+                    "value": {
+                      "statusCode": 404,
+                      "code": "USER_NOT_FOUND",
+                      "message": "User not found",
+                      "error": "Not Found",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "可能的错误码：\n\n- `COMMON_TOO_MANY_REQUESTS`：触发限流。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_TOO_MANY_REQUESTS"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_TOO_MANY_REQUESTS": {
+                    "summary": "COMMON_TOO_MANY_REQUESTS",
+                    "description": "触发限流。",
+                    "value": {
+                      "statusCode": 429,
+                      "code": "COMMON_TOO_MANY_REQUESTS",
+                      "message": "Too many requests",
+                      "error": "Too Many Requests",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "可能的错误码：\n\n- `COMMON_INTERNAL_ERROR`：服务端未预期的异常（代码缺陷等）。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_INTERNAL_ERROR"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_INTERNAL_ERROR": {
+                    "summary": "COMMON_INTERNAL_ERROR",
+                    "description": "服务端未预期的异常（代码缺陷等）。",
+                    "value": {
+                      "statusCode": 500,
+                      "code": "COMMON_INTERNAL_ERROR",
+                      "message": "Internal server error",
+                      "error": "Internal Server Error",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "可能的错误码：\n\n- `COMMON_SERVICE_UNAVAILABLE`：依赖服务（数据库等）暂时不可用或连接超时。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "COMMON_SERVICE_UNAVAILABLE"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "examples": {
+                  "COMMON_SERVICE_UNAVAILABLE": {
+                    "summary": "COMMON_SERVICE_UNAVAILABLE",
+                    "description": "依赖服务（数据库等）暂时不可用或连接超时。",
+                    "value": {
+                      "statusCode": 503,
+                      "code": "COMMON_SERVICE_UNAVAILABLE",
+                      "message": "Service temporarily unavailable",
+                      "error": "Service Unavailable",
+                      "path": "/api/users/{id}",
+                      "requestId": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d",
+                      "timestamp": "2026-11-04T02:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "删除用户",
+        "tags": [
+          "users"
+        ],
+        "description": "物理删除，同时删除该用户的所有令牌，不可恢复。",
+        "x-error-codes": [
+          "USER_NOT_FOUND",
+          "AUTH_TOKEN_MISSING",
+          "AUTH_TOKEN_EXPIRED",
+          "AUTH_TOKEN_INVALID",
+          "AUTH_FORBIDDEN",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "API",
+    "description": "Enterprise NestJS starter API\n\n- 成功响应统一包装为 `{ statusCode, data, path, requestId, timestamp }`，业务数据在 `data` 中。\n- 错误响应统一为 `ErrorResponseDto`，前端以 `code` 作为分支依据；每个接口都列出了可能返回的错误码。\n- 每个响应都带 `X-Request-Id` 响应头；反馈问题时请附上。",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "app",
+      "description": "服务信息"
+    },
+    {
+      "name": "auth",
+      "description": "认证：注册、登录、令牌刷新、登出、找回密码"
+    },
+    {
+      "name": "users",
+      "description": "用户管理（仅管理员）"
+    },
+    {
+      "name": "health",
+      "description": "健康检查（不经过统一响应包装）"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "AppInfoDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "服务名称（APP_NAME）",
+            "example": "API"
+          },
+          "version": {
+            "type": "string",
+            "description": "后端版本号，与 package.json / GitHub Release 一致；前端可据此确认对接的契约版本",
+            "example": "1.1.0"
+          }
+        },
+        "required": [
+          "name",
+          "version"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "邮箱，作为登录账号，全局唯一",
+            "example": "alice@example.com",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码，8～72 位",
+            "example": "password123",
+            "minLength": 8,
+            "maxLength": 72
+          },
+          "name": {
+            "type": "string",
+            "description": "昵称",
+            "example": "Alice",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "ADMIN"
+        ],
+        "description": "角色：USER 普通用户，ADMIN 管理员"
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "description": "角色：USER 普通用户，ADMIN 管理员",
+            "example": "USER",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "id": {
+            "type": "string",
+            "description": "用户 ID（UUID）",
+            "example": "c658fdbb-475d-4e4b-ae5d-ba630e31c797"
+          },
+          "email": {
+            "type": "string",
+            "description": "邮箱（登录账号）",
+            "example": "alice@example.com"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "昵称；未设置时为 null",
+            "example": "Alice"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "创建时间（ISO 8601）"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "最后更新时间（ISO 8601）"
+          }
+        },
+        "required": [
+          "role",
+          "id",
+          "email",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "访问令牌（JWT），放在请求头 `Authorization: Bearer <accessToken>` 中；有效期见 JWT_EXPIRES_IN",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "刷新令牌，用于在 access token 过期后调用 /auth/refresh 换取新令牌。\n只能使用一次，每次刷新都会返回新的 refresh token；有效期见 JWT_REFRESH_EXPIRES_IN",
+            "example": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+          },
+          "user": {
+            "description": "当前登录用户",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "user"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "注册邮箱",
+            "example": "alice@example.com",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "description": "密码",
+            "example": "password123",
+            "maxLength": 72
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "登录 / 注册 / 上次刷新时返回的 refresh token。每个 refresh token 只能使用一次",
+            "example": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "LogoutDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "要注销的 refresh token；注销后该 token 无法再用于刷新",
+            "example": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "注册邮箱。无论邮箱是否存在，接口都返回 204，防止账号枚举",
+            "example": "alice@example.com",
+            "maxLength": 254,
+            "format": "email"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "重置密码邮件中携带的 token，有效期见 PASSWORD_RESET_EXPIRES_MIN，只能使用一次",
+            "example": "3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b",
+            "maxLength": 512
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "新密码，8～72 位。重置成功后该用户所有设备的登录状态都会失效",
+            "example": "new-password123",
+            "minLength": 8,
+            "maxLength": 72
+          }
+        },
+        "required": [
+          "token",
+          "newPassword"
+        ]
+      },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "当前页码，从 1 开始",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "description": "每页条数",
+            "example": 20
+          },
+          "total": {
+            "type": "integer",
+            "description": "总条数",
+            "example": 135
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "总页数",
+            "example": 7
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "UserPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "当前页数据",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponseDto"
+            }
+          },
+          "meta": {
+            "description": "分页信息",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationMetaDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "meta"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "description": "角色",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "昵称",
+            "example": "Alice",
+            "maxLength": 100
+          }
+        }
+      },
+      "ErrorCode": {
+        "type": "string",
+        "enum": [
+          "COMMON_BAD_REQUEST",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_UNAUTHORIZED",
+          "COMMON_FORBIDDEN",
+          "COMMON_NOT_FOUND",
+          "COMMON_ROUTE_NOT_FOUND",
+          "COMMON_CONFLICT",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE",
+          "AUTH_INVALID_CREDENTIALS",
+          "AUTH_EMAIL_TAKEN",
+          "AUTH_TOKEN_MISSING",
+          "AUTH_TOKEN_EXPIRED",
+          "AUTH_TOKEN_INVALID",
+          "AUTH_REFRESH_TOKEN_INVALID",
+          "AUTH_RESET_TOKEN_INVALID",
+          "AUTH_FORBIDDEN",
+          "USER_NOT_FOUND"
+        ],
+        "description": "业务错误码。同一个错误码永远对应同一个 HTTP 状态码。\n\n| 错误码 | HTTP | 说明 |\n|---|---|---|\n| `COMMON_BAD_REQUEST` | 400 | 请求无法处理，且不属于更具体的错误类型（兜底的 4xx）。 |\n| `COMMON_VALIDATION_FAILED` | 400 | 请求参数（body / query / path）未通过校验。 |\n| `COMMON_MALFORMED_JSON` | 400 | 请求体不是合法的 JSON。 |\n| `COMMON_PAYLOAD_TOO_LARGE` | 413 | 请求体超过服务端允许的大小上限。 |\n| `COMMON_UNAUTHORIZED` | 401 | 未认证（兜底）。认证相关的具体原因优先使用 `AUTH_*` 错误码。 |\n| `COMMON_FORBIDDEN` | 403 | 已认证但无权执行该操作（兜底）。 |\n| `COMMON_NOT_FOUND` | 404 | 请求的资源不存在（兜底）。具体资源优先使用 `<MODULE>_NOT_FOUND`。 |\n| `COMMON_ROUTE_NOT_FOUND` | 404 | 请求的接口地址不存在（路径或 HTTP 方法错误）。 |\n| `COMMON_CONFLICT` | 409 | 与现有数据冲突，例如唯一字段重复。 |\n| `COMMON_TOO_MANY_REQUESTS` | 429 | 触发限流。 |\n| `COMMON_INTERNAL_ERROR` | 500 | 服务端未预期的异常（代码缺陷等）。 |\n| `COMMON_SERVICE_UNAVAILABLE` | 503 | 依赖服务（数据库等）暂时不可用或连接超时。 |\n| `AUTH_INVALID_CREDENTIALS` | 401 | 登录时邮箱不存在或密码错误（两者故意不区分，防止账号枚举）。 |\n| `AUTH_EMAIL_TAKEN` | 409 | 注册时邮箱已被占用。 |\n| `AUTH_TOKEN_MISSING` | 401 | 需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。 |\n| `AUTH_TOKEN_EXPIRED` | 401 | access token 已过期。 |\n| `AUTH_TOKEN_INVALID` | 401 | access token 格式错误、签名不匹配或已被篡改。 |\n| `AUTH_REFRESH_TOKEN_INVALID` | 401 | refresh token 不存在、已过期、已被使用（轮换后旧 token 失效）或已登出。 |\n| `AUTH_RESET_TOKEN_INVALID` | 401 | 重置密码链接中的 token 不存在、已过期或已被使用。 |\n| `AUTH_FORBIDDEN` | 403 | 当前用户的角色无权访问该接口。 |\n| `USER_NOT_FOUND` | 404 | 指定的用户不存在或已被删除。 |",
+        "x-enum-varnames": [
+          "COMMON_BAD_REQUEST",
+          "COMMON_VALIDATION_FAILED",
+          "COMMON_MALFORMED_JSON",
+          "COMMON_PAYLOAD_TOO_LARGE",
+          "COMMON_UNAUTHORIZED",
+          "COMMON_FORBIDDEN",
+          "COMMON_NOT_FOUND",
+          "COMMON_ROUTE_NOT_FOUND",
+          "COMMON_CONFLICT",
+          "COMMON_TOO_MANY_REQUESTS",
+          "COMMON_INTERNAL_ERROR",
+          "COMMON_SERVICE_UNAVAILABLE",
+          "AUTH_INVALID_CREDENTIALS",
+          "AUTH_EMAIL_TAKEN",
+          "AUTH_TOKEN_MISSING",
+          "AUTH_TOKEN_EXPIRED",
+          "AUTH_TOKEN_INVALID",
+          "AUTH_REFRESH_TOKEN_INVALID",
+          "AUTH_RESET_TOKEN_INVALID",
+          "AUTH_FORBIDDEN",
+          "USER_NOT_FOUND"
+        ],
+        "x-enum-descriptions": [
+          "请求无法处理，且不属于更具体的错误类型（兜底的 4xx）。",
+          "请求参数（body / query / path）未通过校验。",
+          "请求体不是合法的 JSON。",
+          "请求体超过服务端允许的大小上限。",
+          "未认证（兜底）。认证相关的具体原因优先使用 `AUTH_*` 错误码。",
+          "已认证但无权执行该操作（兜底）。",
+          "请求的资源不存在（兜底）。具体资源优先使用 `<MODULE>_NOT_FOUND`。",
+          "请求的接口地址不存在（路径或 HTTP 方法错误）。",
+          "与现有数据冲突，例如唯一字段重复。",
+          "触发限流。",
+          "服务端未预期的异常（代码缺陷等）。",
+          "依赖服务（数据库等）暂时不可用或连接超时。",
+          "登录时邮箱不存在或密码错误（两者故意不区分，防止账号枚举）。",
+          "注册时邮箱已被占用。",
+          "需要登录的接口未携带 `Authorization: Bearer <token>` 请求头。",
+          "access token 已过期。",
+          "access token 格式错误、签名不匹配或已被篡改。",
+          "refresh token 不存在、已过期、已被使用（轮换后旧 token 失效）或已登出。",
+          "重置密码链接中的 token 不存在、已过期或已被使用。",
+          "当前用户的角色无权访问该接口。",
+          "指定的用户不存在或已被删除。"
+        ]
+      },
+      "ErrorDetailDto": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "出错字段的点分路径；嵌套对象 / 数组形如 `address.city`、`items.0.price`",
+            "example": "email"
+          },
+          "rule": {
+            "type": "string",
+            "description": "未通过的规则名，如 `isEmail`、`minLength`、`unique`",
+            "example": "isEmail"
+          },
+          "message": {
+            "type": "string",
+            "description": "错误描述（英文）",
+            "example": "email must be an email"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "description": "HTTP 状态码，与响应状态一致",
+            "example": 400
+          },
+          "code": {
+            "description": "业务错误码，完整列表与含义见 docs/error-codes.md",
+            "example": "COMMON_VALIDATION_FAILED",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ErrorCode"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "description": "错误描述（英文，可直接展示；需要多语言时按 `code` 映射）",
+            "example": "Validation failed"
+          },
+          "details": {
+            "description": "字段级错误明细；仅在参数校验失败、唯一约束冲突等场景出现",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetailDto"
+            }
+          },
+          "error": {
+            "type": "string",
+            "description": "HTTP 状态短语",
+            "example": "Bad Request"
+          },
+          "path": {
+            "type": "string",
+            "description": "请求路径",
+            "example": "/api/auth/register"
+          },
+          "requestId": {
+            "type": "string",
+            "description": "请求 ID，与响应头 `X-Request-Id` 相同；反馈问题时请附上",
+            "example": "4f1c2a9e-7b3d-4e8a-9c1f-2d5e6a7b8c9d"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "服务端时间（ISO 8601）",
+            "example": "2026-11-04T02:00:00.000Z"
+          }
+        },
+        "required": [
+          "statusCode",
+          "code",
+          "message",
+          "error",
+          "path",
+          "timestamp"
+        ]
+      }
+    }
+  }
+}
