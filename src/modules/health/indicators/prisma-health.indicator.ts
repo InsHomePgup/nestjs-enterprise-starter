@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { HealthIndicatorService } from '@nestjs/terminus';
 import { PrismaService } from '../../../infra/prisma/prisma.service';
+import { withTimeout } from './with-timeout';
 
 @Injectable()
 export class PrismaHealthIndicator {
@@ -12,7 +13,7 @@ export class PrismaHealthIndicator {
   async isHealthy(key: string) {
     const indicator = this.healthIndicatorService.check(key);
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
+      await withTimeout(this.prisma.$queryRaw`SELECT 1`);
       return indicator.up();
     } catch (error) {
       return indicator.down({
