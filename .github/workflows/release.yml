@@ -1,0 +1,58 @@
+name: Release
+
+# Manual release from GitHub UI (Actions -> Release -> Run workflow).
+# Equivalent to running `pnpm release` locally, without needing a local GitHub token.
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Version bump (auto = derive from Conventional Commits)'
+        type: choice
+        default: auto
+        options: [auto, patch, minor, major]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags for changelog generation
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Release
+        run: |
+          if [ "${{ inputs.increment }}" = "auto" ]; then
+            pnpm release --ci
+          else
+            pnpm release ${{ inputs.increment }} --ci
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

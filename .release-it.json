@@ -1,0 +1,43 @@
+{
+  "$schema": "https://unpkg.com/release-it@21/schema/release-it.json",
+  "git": {
+    "requireBranch": "main",
+    "requireCleanWorkingDir": true,
+    "requireUpstream": true,
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "tagAnnotation": "Release v${version}",
+    "push": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "before:init": ["pnpm exec biome ci .", "pnpm test", "pnpm build"]
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "infile": "CHANGELOG.md",
+      "header": "# 更新日志 / Changelog\n\n本文件由 release-it 根据 Conventional Commits 自动生成，请勿手动编辑。",
+      "preset": {
+        "name": "conventionalcommits",
+        "types": [
+          { "type": "feat", "section": "新功能 Features" },
+          { "type": "fix", "section": "问题修复 Bug Fixes" },
+          { "type": "perf", "section": "性能优化 Performance", "effect": "changelog" },
+          { "type": "refactor", "section": "重构 Refactoring", "effect": "changelog" },
+          { "type": "docs", "section": "文档 Documentation", "effect": "changelog" },
+          { "type": "build", "section": "构建 Build", "effect": "changelog" },
+          { "type": "ci", "section": "持续集成 CI", "effect": "changelog" },
+          { "type": "test", "section": "测试 Tests", "effect": "changelog" },
+          { "type": "chore", "section": "杂项 Chores", "effect": "changelog" },
+          { "type": "style", "effect": "hidden" }
+        ]
+      }
+    }
+  }
+}

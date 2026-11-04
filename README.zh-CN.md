@@ -106,6 +106,21 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
+## 发版与更新日志
+
+版本号遵循 [SemVer](https://semver.org/lang/zh-CN/)，由 [release-it](https://github.com/release-it/release-it) 根据 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 自动生成 `CHANGELOG.md`。
+
+- `fix:` → patch，`feat:` → minor，`feat!:`（破坏性改动）→ major；`docs`/`refactor`/`ci`/`chore` 等只进入 CHANGELOG，不单独触发升级。
+- 本地发版：
+
+  ```bash
+  $ GITHUB_TOKEN=$(gh auth token) pnpm release          # 自动推荐版本号，交互确认
+  $ GITHUB_TOKEN=$(gh auth token) pnpm release minor    # 指定升级级别
+  ```
+
+- 也可以在 GitHub Actions 中手动触发 **Release** 工作流（可选 auto / patch / minor / major）。
+- 发版会依次：lint + 单测 + 构建 → 升级 `package.json` 版本 → 生成 CHANGELOG → 提交 `chore: release vX.Y.Z` → 打 tag → 推送 → 创建 GitHub Release。
+
 ## 路线图 / TODO
 
 - [x] User 模块：`UserService` + `UserController`（分页列表/详情/更新/删除），仅管理员可访问

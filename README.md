@@ -107,6 +107,21 @@ $ pnpm run test:e2e
 $ pnpm run test:cov
 ```
 
+## Releases & changelog
+
+Versions follow [SemVer](https://semver.org/). [release-it](https://github.com/release-it/release-it) generates `CHANGELOG.md` from [Conventional Commits](https://www.conventionalcommits.org/).
+
+- `fix:` → patch, `feat:` → minor, `feat!:` (breaking) → major; `docs`/`refactor`/`ci`/`chore` etc. show up in the changelog without triggering a bump on their own.
+- Release locally:
+
+  ```bash
+  $ GITHUB_TOKEN=$(gh auth token) pnpm release          # recommends a version, asks to confirm
+  $ GITHUB_TOKEN=$(gh auth token) pnpm release minor    # force a bump level
+  ```
+
+- Or trigger the **Release** workflow manually in GitHub Actions (auto / patch / minor / major).
+- A release runs lint + unit tests + build → bumps `package.json` → writes CHANGELOG → commits `chore: release vX.Y.Z` → tags → pushes → creates a GitHub Release.
+
 ## Roadmap / TODO
 
 - [x] User module: `UserService` + `UserController` (paginated list/detail/update/delete), admin-only
