@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // The Swagger plugin needs full type information, which ts-jest only provides
+    // when it compiles with a Program (isolatedModules: false).
+    "isolatedModules": false
+  }
+}

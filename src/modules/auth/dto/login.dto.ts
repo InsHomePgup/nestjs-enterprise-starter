@@ -1,12 +1,21 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsString, MaxLength } from 'class-validator';
+import { EMAIL_MAX_LENGTH, PASSWORD_MAX_LENGTH } from './password.constants';
 
+/** 登录请求 */
 export class LoginDto {
-  @ApiProperty()
+  /**
+   * 注册邮箱
+   * @example "alice@example.com"
+   */
   @IsEmail()
+  @MaxLength(EMAIL_MAX_LENGTH)
   email: string;
 
-  @ApiProperty()
+  /**
+   * 密码
+   * @example "password123"
+   */
   @IsString()
+  @MaxLength(PASSWORD_MAX_LENGTH)
   password: string;
 }

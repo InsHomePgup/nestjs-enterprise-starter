@@ -1,4 +1,5 @@
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
@@ -13,7 +14,11 @@ describe('AppController (e2e)', () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [AppService, { provide: APP_INTERCEPTOR, useClass: TransformInterceptor }],
+      providers: [
+        AppService,
+        { provide: ConfigService, useValue: { get: () => 'My API' } },
+        { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+      ],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -27,7 +32,7 @@ describe('AppController (e2e)', () => {
       .expect((res) => {
         expect(res.body).toMatchObject({
           statusCode: 200,
-          data: 'Hello World!',
+          data: { name: 'My API', version: expect.any(String) },
           path: '/',
           timestamp: expect.any(String),
         });

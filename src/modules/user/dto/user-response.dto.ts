@@ -1,26 +1,41 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Paginated } from '../../../common/dto/api-response.dto';
 import type { User } from '../../../generated/prisma/client';
 import { Role } from '../../../generated/prisma/enums';
 
+/** 用户信息（不含密码等敏感字段） */
 export class UserResponseDto {
-  @ApiProperty()
+  /**
+   * 用户 ID（UUID）
+   * @example "c658fdbb-475d-4e4b-ae5d-ba630e31c797"
+   */
   id: string;
 
-  @ApiProperty()
+  /**
+   * 邮箱（登录账号）
+   * @example "alice@example.com"
+   */
   email: string;
 
-  @ApiProperty({ required: false, nullable: true })
+  /**
+   * 昵称；未设置时为 null
+   * @example "Alice"
+   */
   name: string | null;
 
-  @ApiProperty({ enum: Role })
+  /** 角色：USER 普通用户，ADMIN 管理员 */
+  @ApiProperty({ enum: Role, enumName: 'Role', example: Role.USER })
   role: Role;
 
-  @ApiProperty()
+  /** 创建时间（ISO 8601） */
   createdAt: Date;
 
-  @ApiProperty()
+  /** 最后更新时间（ISO 8601） */
   updatedAt: Date;
 }
+
+/** 用户分页列表 */
+export class UserPageDto extends Paginated(UserResponseDto) {}
 
 export function toUserResponse(user: User): UserResponseDto {
   return {

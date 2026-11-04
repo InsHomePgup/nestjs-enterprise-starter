@@ -38,7 +38,7 @@ describe('User (e2e)', () => {
     const loginRes = await request(server)
       .post('/api/auth/login')
       .send({ email, password: 'password123' })
-      .expect(201);
+      .expect(200);
     const accessToken: string = loginRes.body.data.accessToken;
     const auth = () => ({ Authorization: `Bearer ${accessToken}` });
 
@@ -59,7 +59,7 @@ describe('User (e2e)', () => {
       .expect(200);
     expect(patchRes.body.data.name).toBe('Renamed Admin');
 
-    await request(server).delete(`/api/users/${userId}`).set(auth()).expect(200);
+    await request(server).delete(`/api/users/${userId}`).set(auth()).expect(204);
     await request(server).get(`/api/users/${userId}`).set(auth()).expect(404);
   });
 });

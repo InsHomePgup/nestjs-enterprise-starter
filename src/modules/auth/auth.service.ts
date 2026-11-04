@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -7,9 +7,11 @@ import { ErrorCode } from '../../common/constants/error-code.enum';
 import { BusinessException } from '../../common/exceptions/business.exception';
 import { isUniqueConstraintError } from '../../common/filters/prisma-error.mapper';
 import { parseDurationMs } from '../../common/utils/duration.util';
-import type { Role } from '../../generated/prisma/enums';
+import type { User } from '../../generated/prisma/client';
 import { PrismaService } from '../../infra/prisma/prisma.service';
+import { toUserResponse } from '../user/dto/user-response.dto';
 import { UserRepository } from '../user/user.repository';
+import type { AuthResponseDto } from './dto/auth-response.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { LogoutDto } from './dto/logout.dto';
@@ -18,21 +20,10 @@ import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { TokenRepository } from './token.repository';
 
-function emailTaken() {
-  return new BusinessException(
-    ErrorCode.AUTH_EMAIL_TAKEN,
-    'Email is already registered',
-    HttpStatus.CONFLICT,
-  );
-}
-
-function invalidToken(kind: 'Refresh' | 'Reset') {
-  return new BusinessException(
-    ErrorCode.AUTH_TOKEN_INVALID,
-    `${kind} token is invalid or expired`,
-    HttpStatus.UNAUTHORIZED,
-  );
-}
+const emailTaken = () => new BusinessException(ErrorCode.AUTH_EMAIL_TAKEN);
+const invalidRefreshToken = () => new BusinessException(ErrorCode.AUTH_REFRESH_TOKEN_INVALID);
+const invalidResetToken = () => new BusinessException(ErrorCode.AUTH_RESET_TOKEN_INVALID);
+const invalidCredentials = () => new BusinessException(ErrorCode.AUTH_INVALID_CREDENTIALS);
 
 @Injectable()
 export class AuthService {
@@ -45,7 +36,7 @@ export class AuthService {
     private readonly logger: Logger,
   ) {}
 
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const existing = await this.userRepository.findByEmail(dto.email);
     if (existing) {
       throw emailTaken();
@@ -60,45 +51,37 @@ export class AuthService {
         throw isUniqueConstraintError(error) ? emailTaken() : error;
       });
 
-    return this.buildAuthResponse(user.id, user.email, user.name, user.role);
+    return this.buildAuthResponse(user);
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.userRepository.findByEmail(dto.email);
     if (!user) {
-      throw new BusinessException(
-        ErrorCode.AUTH_INVALID_CREDENTIALS,
-        'Invalid credentials',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw invalidCredentials();
     }
 
     const passwordMatches = await bcrypt.compare(dto.password, user.password);
     if (!passwordMatches) {
-      throw new BusinessException(
-        ErrorCode.AUTH_INVALID_CREDENTIALS,
-        'Invalid credentials',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw invalidCredentials();
     }
 
-    return this.buildAuthResponse(user.id, user.email, user.name, user.role);
+    return this.buildAuthResponse(user);
   }
 
-  async refresh(dto: RefreshTokenDto) {
+  async refresh(dto: RefreshTokenDto): Promise<AuthResponseDto> {
     // Rotation: the presented token is revoked atomically; a replayed or concurrently
     // reused token gets null here and is rejected.
     const consumed = await this.tokenRepository.consumeRefreshToken(dto.refreshToken);
     if (!consumed) {
-      throw invalidToken('Refresh');
+      throw invalidRefreshToken();
     }
 
     const user = await this.userRepository.findById(consumed.userId);
     if (!user) {
-      throw invalidToken('Refresh');
+      throw invalidRefreshToken();
     }
 
-    return this.buildAuthResponse(user.id, user.email, user.name, user.role);
+    return this.buildAuthResponse(user);
   }
 
   async logout(dto: LogoutDto): Promise<void> {
@@ -122,7 +105,7 @@ export class AuthService {
   async resetPassword(dto: ResetPasswordDto): Promise<void> {
     // Cheap pre-check so invalid tokens don't cost a bcrypt hash.
     if (!(await this.tokenRepository.findValidPasswordResetToken(dto.token))) {
-      throw invalidToken('Reset');
+      throw invalidResetToken();
     }
 
     const saltRounds = this.configService.get<number>('auth.bcryptSaltRounds') ?? 10;
@@ -132,24 +115,27 @@ export class AuthService {
     await this.prisma.$transaction(async (tx) => {
       const consumed = await this.tokenRepository.consumePasswordResetToken(dto.token, tx);
       if (!consumed) {
-        throw invalidToken('Reset');
+        throw invalidResetToken();
       }
       await this.userRepository.update(consumed.userId, { password: hashedPassword }, tx);
       await this.tokenRepository.revokeAllRefreshTokensForUser(consumed.userId, tx);
     });
   }
 
-  private async buildAuthResponse(id: string, email: string, name: string | null, role: Role) {
-    const accessToken = this.jwtService.sign({ sub: id, email, role });
+  private async buildAuthResponse(user: User): Promise<AuthResponseDto> {
+    const accessToken = this.jwtService.sign({ sub: user.id, email: user.email, role: user.role });
     const refreshTtlMs = parseDurationMs(
       this.configService.get<string>('jwt.refreshExpiresIn') ?? '7d',
     );
-    const { token: refreshToken } = await this.tokenRepository.createRefreshToken(id, refreshTtlMs);
+    const { token: refreshToken } = await this.tokenRepository.createRefreshToken(
+      user.id,
+      refreshTtlMs,
+    );
 
     return {
       accessToken,
       refreshToken,
-      user: { id, email, name, role },
+      user: toUserResponse(user),
     };
   }
 }
