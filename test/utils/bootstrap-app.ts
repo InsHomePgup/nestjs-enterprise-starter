@@ -1,24 +1,12 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { Logger } from 'nestjs-pino';
 import { AppModule } from '../../src/app.module';
-import { AllExceptionsFilter } from '../../src/common/filters/all-exceptions.filter';
+import { configureApp } from '../../src/app.setup';
 
+/** Boots the full AppModule with exactly the same HTTP pipeline as `main.ts`. */
 export async function bootstrapTestApp(): Promise<INestApplication> {
   const moduleFixture = await Test.createTestingModule({ imports: [AppModule] }).compile();
-  const app = moduleFixture.createNestApplication();
-  const configService = app.get(ConfigService);
-
-  app.useLogger(app.get(Logger));
-  app.setGlobalPrefix(configService.get<string>('app.apiPrefix') ?? 'api', {
-    exclude: ['health'],
-  });
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: true }),
-  );
-  app.useGlobalFilters(new AllExceptionsFilter(app.get(Logger)));
-
+  const app = configureApp(moduleFixture.createNestApplication());
   await app.init();
   return app;
 }
