@@ -2,23 +2,98 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from
 import { Request, Response } from 'express';
 import { Logger } from 'nestjs-pino';
 import { ErrorCode } from '../constants/error-code.enum';
+import { mapPrismaError } from './prisma-error.mapper';
 
-const INTERNAL_SERVER_ERROR_STATUS: number = HttpStatus.INTERNAL_SERVER_ERROR;
+/** Shape of every error response body. Keep in sync with the Swagger error schema. */
+export interface ErrorResponseBody {
+  statusCode: number;
+  code: string;
+  message: string;
+  /** Field-level validation messages (from ValidationPipe), when available. */
+  details?: string[];
+  error: string;
+  path: string;
+  requestId: string | undefined;
+  timestamp: string;
+}
 
-function resolveErrorCode(statusCode: number, response: unknown): string {
-  if (typeof response === 'object' && response !== null && 'code' in response) {
-    const code = (response as { code?: unknown }).code;
-    if (typeof code === 'string') {
-      return code;
+interface NormalizedError {
+  statusCode: number;
+  code: string;
+  message: string;
+  details?: string[];
+  error: string;
+}
+
+const DEFAULT_CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
+  [HttpStatus.BAD_REQUEST]: ErrorCode.COMMON_VALIDATION_FAILED,
+  [HttpStatus.UNPROCESSABLE_ENTITY]: ErrorCode.COMMON_VALIDATION_FAILED,
+  [HttpStatus.UNAUTHORIZED]: ErrorCode.COMMON_UNAUTHORIZED,
+  [HttpStatus.FORBIDDEN]: ErrorCode.COMMON_FORBIDDEN,
+  [HttpStatus.NOT_FOUND]: ErrorCode.COMMON_NOT_FOUND,
+  [HttpStatus.CONFLICT]: ErrorCode.COMMON_CONFLICT,
+  [HttpStatus.TOO_MANY_REQUESTS]: ErrorCode.COMMON_TOO_MANY_REQUESTS,
+};
+
+function defaultCodeFor(statusCode: number): ErrorCode {
+  const mapped = DEFAULT_CODE_BY_STATUS[statusCode];
+  if (mapped) {
+    return mapped;
+  }
+  return statusCode >= HttpStatus.INTERNAL_SERVER_ERROR
+    ? ErrorCode.COMMON_INTERNAL_ERROR
+    : ErrorCode.COMMON_BAD_REQUEST;
+}
+
+function normalizeHttpException(exception: HttpException): NormalizedError {
+  const statusCode = exception.getStatus();
+  const response = exception.getResponse();
+
+  let code: string | undefined;
+  let message: string = exception.message;
+  let details: string[] | undefined;
+
+  if (typeof response === 'string') {
+    message = response;
+  } else if (typeof response === 'object' && response !== null) {
+    const body = response as { code?: unknown; message?: unknown };
+    if (typeof body.code === 'string') {
+      code = body.code;
+    }
+    if (typeof body.message === 'string') {
+      message = body.message;
+    } else if (Array.isArray(body.message)) {
+      // ValidationPipe puts the per-field messages in an array.
+      details = body.message.map(String);
+      message = 'Validation failed';
     }
   }
-  if (statusCode === HttpStatus.NOT_FOUND) {
-    return ErrorCode.COMMON_NOT_FOUND;
+
+  return {
+    statusCode,
+    code: code ?? defaultCodeFor(statusCode),
+    message,
+    ...(details ? { details } : {}),
+    error: exception.name,
+  };
+}
+
+function normalize(exception: unknown): NormalizedError {
+  if (exception instanceof HttpException) {
+    return normalizeHttpException(exception);
   }
-  if (statusCode >= HttpStatus.BAD_REQUEST && statusCode < INTERNAL_SERVER_ERROR_STATUS) {
-    return ErrorCode.COMMON_VALIDATION_FAILED;
+
+  const prismaError = mapPrismaError(exception);
+  if (prismaError) {
+    return { ...prismaError, error: 'DatabaseError' };
   }
-  return ErrorCode.COMMON_INTERNAL_ERROR;
+
+  return {
+    statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+    code: ErrorCode.COMMON_INTERNAL_ERROR,
+    message: 'Internal server error',
+    error: 'InternalServerError',
+  };
 }
 
 @Catch()
@@ -30,30 +105,21 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request & { id?: string }>();
 
-    const isHttpException = exception instanceof HttpException;
-    const statusCode: number = isHttpException
-      ? exception.getStatus()
-      : HttpStatus.INTERNAL_SERVER_ERROR;
-
-    const message = isHttpException ? exception.getResponse() : 'Internal server error';
-
-    const errorBody = {
-      statusCode,
-      code: resolveErrorCode(statusCode, isHttpException ? exception.getResponse() : undefined),
-      message,
-      error: isHttpException ? exception.name : 'InternalServerError',
+    const normalized = normalize(exception);
+    const body: ErrorResponseBody = {
+      ...normalized,
       path: request.url,
       requestId: request.id,
       timestamp: new Date().toISOString(),
     };
 
-    const logMessage = `${request.method} ${request.url} -> ${statusCode}`;
-    if (statusCode >= INTERNAL_SERVER_ERROR_STATUS) {
+    const logMessage = `${request.method} ${request.url} -> ${body.statusCode} ${body.code}`;
+    if (body.statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(logMessage, exception instanceof Error ? exception.stack : undefined);
     } else {
       this.logger.warn(logMessage);
     }
 
-    response.status(statusCode).json(errorBody);
+    response.status(body.statusCode).json(body);
   }
 }
