@@ -1,6 +1,6 @@
 {
   "name": "nestjs-enterprise-starter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Enterprise-ready NestJS backend starter: Prisma + PostgreSQL, Redis, JWT auth/RBAC, Swagger, health checks, structured logging, Docker",
   "author": "",
   "private": true,

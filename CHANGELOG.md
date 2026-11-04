@@ -2,6 +2,27 @@
 
 本文件由 release-it 根据 Conventional Commits 自动生成，请勿手动编辑。
 
+## [1.1.0](https://github.com/InsHomePgup/nestjs-enterprise-starter/compare/v1.0.0...v1.1.0) (2026-11-04)
+
+### 新功能 Features
+
+* 启用 Swagger 插件，补齐接口注释、响应类型与错误码文档，新增 @Auth 装饰器与文档质量检查 ([2dc47ca](https://github.com/InsHomePgup/nestjs-enterprise-starter/commit/2dc47ca5c179c5b5b00e2be513e41db5dd2556d1))
+* 新增 openapi:export 导出接口契约，CI 校验契约漂移与破坏性变更，发版附带 openapi.json ([7f15e55](https://github.com/InsHomePgup/nestjs-enterprise-starter/commit/7f15e557ff6cdb4258723531547479b4bd99660c))
+* 日志脱敏与请求上下文，每个请求输出一条带 requestId、userId、errorCode 的访问日志 ([c93055d](https://github.com/InsHomePgup/nestjs-enterprise-starter/commit/c93055d3f04a09734d5eac03bf292e97fde2d796))
+* 错误码注册表与自动生成的错误码文档，细分认证错误码，校验与唯一冲突返回字段级 details ([2964513](https://github.com/InsHomePgup/nestjs-enterprise-starter/commit/296451368df93b248e9c1e9640b6a6c3d063d41a))
+
+### 问题修复 Bug Fixes
+
+* 健康检查增加超时，依赖不可达时返回 down 而不是一直挂起 ([238565c](https://github.com/InsHomePgup/nestjs-enterprise-starter/commit/238565c836d677616723d0e3d16d883703c7c8f6))
+
+### 文档 Documentation
+
+* 新增接口开发规范与功能覆盖清单，README 补充接口契约与错误码说明 ([037acdb](https://github.com/InsHomePgup/nestjs-enterprise-starter/commit/037acdb48a4cc5c05a7acf2ae0f78d0d3eb1d884))
+
+### 持续集成 CI
+
+* CI 改为仅手动触发，新增可选 CI 方案文档 ([5ab4319](https://github.com/InsHomePgup/nestjs-enterprise-starter/commit/5ab43196db692e4cb42b3c9b8d6765f2f23c5b8d))
+
 ## 1.0.0 (2026-11-04)
 
 ### 新功能 Features
