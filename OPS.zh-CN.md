@@ -63,8 +63,8 @@ docker run --rm hello-world
 ## 3. 拉取代码并配置环境变量
 
 ```bash
-git clone <repo-url> my-nest-demo
-cd my-nest-demo
+git clone <repo-url> nestjs-enterprise-starter
+cd nestjs-enterprise-starter
 cp .env.example .env
 ```
 
@@ -74,7 +74,8 @@ cp .env.example .env
 |---|---|---|
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` 服务，以及应用的 `DATABASE_URL` | `postgres` / `postgres` / `app_db` |
 | `PORT` | 映射到宿主机的应用端口 | `3000` |
-| `JWT_SECRET` | 应用鉴权 | 必须自行覆盖 |
+| `JWT_SECRET` | 应用鉴权 | 必须自行覆盖：至少 32 位且不能是占位值，否则应用拒绝启动（`openssl rand -hex 32`） |
+| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | 启动时创建的初始管理员 | 空（跳过） |
 
 `DATABASE_URL` 和 `REDIS_HOST` 在 `docker-compose.yml` 里已经被覆盖为指向 `postgres`/`redis` 服务名——走 Docker Compose 部署时这两项不需要你手动改。
 
@@ -84,7 +85,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-会构建应用镜像（多阶段：装依赖 → `prisma generate` → `nest build` → 精简运行时镜像），并启动三个容器：`postgres`、`redis`、`app`。应用容器启动时会自动先跑 `prisma migrate deploy` 再启动服务，不需要手动执行迁移。
+会构建应用镜像（多阶段：装依赖 → `prisma generate` → `nest build` → 精简运行时镜像），并启动三个容器：`postgres`、`redis`、`app`。应用容器启动时会自动先跑 `prisma migrate deploy` 和幂等的管理员 seed，再启动服务，不需要手动执行迁移。
 
 ## 5. 验证
 

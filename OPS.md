@@ -63,8 +63,8 @@ docker run --rm hello-world
 ## 3. Get the code and configure environment
 
 ```bash
-git clone <repo-url> my-nest-demo
-cd my-nest-demo
+git clone <repo-url> nestjs-enterprise-starter
+cd nestjs-enterprise-starter
 cp .env.example .env
 ```
 
@@ -74,7 +74,8 @@ Edit `.env` and at minimum change `JWT_SECRET` before running anything beyond lo
 |---|---|---|
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` service, app `DATABASE_URL` | `postgres` / `postgres` / `app_db` |
 | `PORT` | host port mapped to the app container | `3000` |
-| `JWT_SECRET` | app | must be overridden |
+| `JWT_SECRET` | app | must be overridden: >= 32 chars, not a placeholder, or the app won't start (`openssl rand -hex 32`) |
+| `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` | initial admin created on startup | empty (skip) |
 
 `DATABASE_URL` and `REDIS_HOST` are overridden inside `docker-compose.yml` to point at the `postgres`/`redis` service names — you don't need to edit those two for the Docker Compose path.
 
@@ -84,7 +85,7 @@ Edit `.env` and at minimum change `JWT_SECRET` before running anything beyond lo
 docker compose up -d --build
 ```
 
-This builds the app image (multi-stage: install deps → `prisma generate` → `nest build` → slim runtime image) and starts three containers: `postgres`, `redis`, `app`. On startup the app container runs `prisma migrate deploy` automatically before starting the server — no manual migration step needed.
+This builds the app image (multi-stage: install deps → `prisma generate` → `nest build` → slim runtime image) and starts three containers: `postgres`, `redis`, `app`. On startup the app container runs `prisma migrate deploy` and the idempotent admin seed automatically before starting the server — no manual migration step needed.
 
 ## 5. Verify
 

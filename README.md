@@ -23,16 +23,25 @@ Enterprise-ready NestJS starter template: PostgreSQL (Prisma 7) + Redis caching 
 
 ```bash
 $ pnpm install
-$ cp .env.example .env   # adjust values as needed
 ```
 
-Requires a running PostgreSQL and Redis instance. Either start them yourself and point `.env` at them, or use the bundled `docker-compose.yml` (see below).
+Config is loaded from `.env` then `.env.${NODE_ENV}`; the first file defining a key wins, and real environment variables beat both. In development the committed `.env.development` is used as-is; create a local, git-ignored `.env` (see `.env.example`) only to override values on your machine.
 
-Run the first migration once the database is reachable:
+Requires a running PostgreSQL and Redis instance. Either start them yourself and point the config at them, or use the bundled `docker-compose.yml` (see below).
+
+Once the database is reachable, apply migrations and create the initial admin:
 
 ```bash
-$ pnpm prisma migrate dev --name init
+$ pnpm db:migrate   # applies everything in prisma/migrations
+$ pnpm db:seed      # creates the admin (dev default: admin@example.com / admin12345)
 ```
+
+## Database migrations
+
+- After editing `prisma/schema/*.prisma`, run `pnpm db:migrate --name <change>` and commit the generated `prisma/migrations/*`.
+- CI verifies migrations match the schema, so a forgotten migration fails the build.
+- Production applies migrations via `prisma migrate deploy` on container start; never run `migrate dev` against production.
+- Scripts: `db:generate`, `db:migrate`, `db:deploy`, `db:seed`, `db:reset`, `db:studio`.
 
 ## Compile and run the project
 
@@ -52,14 +61,38 @@ $ pnpm run start:prod
 
 ## Run with Docker Compose
 
-Brings up Postgres, Redis, and the app in one command; the app container runs `prisma migrate deploy` automatically on startup.
+Brings up Postgres, Redis, and the app in one command. On startup the app container runs `prisma migrate deploy` → seed (creates the admin if `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` are set, otherwise skips) → the server.
 
 ```bash
-$ cp .env.example .env   # adjust JWT_SECRET etc. before first run
+$ cp .env.example .env
+# Before the first run, set:
+#   JWT_SECRET          in production it must be >= 32 chars and not a placeholder, or the app
+#                       refuses to start (generate one with: openssl rand -hex 32)
+#   SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD   initial admin account (optional)
 $ docker compose up --build
 ```
 
 For a full walkthrough of installing Docker on a fresh Debian host and operating the stack, see [OPS.md](./OPS.md).
+
+## Error response format
+
+Every error uses the same shape, so clients can branch on `code`:
+
+```json
+{
+  "statusCode": 400,
+  "code": "COMMON_VALIDATION_FAILED",
+  "message": "Validation failed",
+  "details": ["email must be an email"],
+  "error": "BadRequestException",
+  "path": "/api/auth/register",
+  "requestId": "4f1c...",
+  "timestamp": "2026-11-04T02:00:00.000Z"
+}
+```
+
+- `message` is always a string; `details` is present only for validation failures.
+- Codes live in `src/common/constants/error-code.enum.ts`. Prisma unique-constraint / record-not-found errors are mapped to 409 / 404 automatically.
 
 ## Run tests
 
@@ -84,7 +117,7 @@ $ pnpm run test:cov
 - [x] Tests: unit tests for `AuthService`/`UserService`, e2e tests for auth flows and user CRUD/RBAC
 - [ ] Soft delete for `User` (currently a hard delete)
 - [ ] Multi-device session management (list/revoke individual refresh tokens per user)
-- [ ] CI: `ci.yml` only runs on `workflow_dispatch`; wire it to trigger on `push`/`pull_request`
+- [x] CI: runs on push / PR with Postgres and Redis services, and checks migrations match the schema
 - [ ] API versioning strategy
 
 ## Resources

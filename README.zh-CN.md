@@ -23,16 +23,25 @@
 
 ```bash
 $ pnpm install
-$ cp .env.example .env   # 按需修改其中的配置项
 ```
 
-需要一个可用的 PostgreSQL 和 Redis 实例。你可以自行启动并在 `.env` 中配置连接信息，也可以直接使用仓库自带的 `docker-compose.yml`（见下文）。
+配置按 `.env` → `.env.${NODE_ENV}` 的顺序加载，同名变量以先读到的为准，真实环境变量优先级最高。开发环境默认直接使用已提交的 `.env.development`；需要在本机覆盖某些值时，再创建 `.env`（可参考 `.env.example`，该文件不入库）。
 
-数据库可连接后，执行首次迁移：
+需要一个可用的 PostgreSQL 和 Redis 实例。你可以自行启动并配置连接信息，也可以直接使用仓库自带的 `docker-compose.yml`（见下文）。
+
+数据库可连接后，执行迁移并创建初始管理员：
 
 ```bash
-$ pnpm prisma migrate dev --name init
+$ pnpm db:migrate   # 应用 prisma/migrations 下的全部迁移
+$ pnpm db:seed      # 创建管理员（开发环境默认 admin@example.com / admin12345）
 ```
+
+## 数据库迁移
+
+- 修改 `prisma/schema/*.prisma` 后执行 `pnpm db:migrate --name <变更说明>`，并将生成的 `prisma/migrations/*` 一并提交。
+- CI 会检查 schema 与迁移是否一致，漏提交迁移会导致 CI 失败。
+- 生产环境由容器启动时自动执行 `prisma migrate deploy`，不要在生产环境运行 `migrate dev`。
+- 常用命令：`db:generate`、`db:migrate`、`db:deploy`、`db:seed`、`db:reset`、`db:studio`。
 
 ## 编译与运行
 
@@ -52,14 +61,37 @@ $ pnpm run start:prod
 
 ## 使用 Docker Compose 运行
 
-一条命令同时启动 Postgres、Redis 和应用本身；应用容器启动时会自动执行 `prisma migrate deploy`。
+一条命令同时启动 Postgres、Redis 和应用本身。应用容器启动时依次执行：`prisma migrate deploy` → seed（若设置了 `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` 则创建管理员，否则跳过）→ 启动服务。
 
 ```bash
-$ cp .env.example .env   # 首次运行前请修改 JWT_SECRET 等配置
+$ cp .env.example .env
+# 首次运行前必须修改：
+#   JWT_SECRET          生产模式下至少 32 位且不能是占位值，否则应用拒绝启动（可用 openssl rand -hex 32 生成）
+#   SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD   初始管理员账号（可选）
 $ docker compose up --build
 ```
 
 在全新的 Debian 主机上安装 Docker 并运维本项目的完整步骤，参见 [OPS.zh-CN.md](./OPS.zh-CN.md)。
+
+## 错误响应格式
+
+所有错误都返回统一结构，前端可根据 `code` 做分支处理：
+
+```json
+{
+  "statusCode": 400,
+  "code": "COMMON_VALIDATION_FAILED",
+  "message": "Validation failed",
+  "details": ["email must be an email"],
+  "error": "BadRequestException",
+  "path": "/api/auth/register",
+  "requestId": "4f1c...",
+  "timestamp": "2026-11-04T02:00:00.000Z"
+}
+```
+
+- `message` 始终是字符串；`details` 仅在参数校验失败时出现。
+- 错误码定义见 `src/common/constants/error-code.enum.ts`。数据库唯一约束冲突、记录不存在等 Prisma 错误会自动映射为 409 / 404。
 
 ## 运行测试
 
@@ -84,7 +116,7 @@ $ pnpm run test:cov
 - [x] 测试：`AuthService`/`UserService` 单元测试，Auth 流程与 User CRUD/RBAC 的 e2e 测试
 - [ ] User 软删除（目前是硬删除）
 - [ ] 多设备会话管理（查看/撤销某用户的单个 refresh token）
-- [ ] CI：`ci.yml` 目前仅支持 `workflow_dispatch` 手动触发，需接入 `push`/`pull_request` 自动触发
+- [x] CI：push / PR 自动触发，内置 Postgres、Redis 服务，并检查迁移是否与 schema 一致
 - [ ] 制定 API 版本管理策略
 
 ## 参考资料
