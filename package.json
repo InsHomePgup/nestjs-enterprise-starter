@@ -5,6 +5,7 @@
   "author": "",
   "private": true,
   "license": "MIT",
+  "packageManager": "pnpm@12.15.0",
   "scripts": {
     "build": "nest build",
     "format": "biome format --write .",

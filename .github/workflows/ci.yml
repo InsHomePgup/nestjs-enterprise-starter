@@ -1,20 +1,53 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+  NODE_ENV: test
+  # Must match .env.test so the app (ConfigModule) and Prisma CLI hit the same database.
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app_db_test
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app_db_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d app_db_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 
+      # pnpm version comes from the `packageManager` field in package.json
       - uses: pnpm/action-setup@v4
-        with:
-          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -28,7 +61,14 @@ jobs:
         run: pnpm exec biome ci .
 
       - name: Generate Prisma client
-        run: pnpm prisma generate
+        run: pnpm db:generate
+
+      - name: Apply migrations
+        run: pnpm db:deploy
+
+      # Fails if prisma/schema was changed without generating a migration (`pnpm db:migrate`).
+      - name: Check migrations are in sync with schema
+        run: pnpm prisma migrate diff --from-config-datasource --to-schema prisma/schema --exit-code
 
       - name: Unit tests
         run: pnpm test
